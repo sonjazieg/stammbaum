@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="de"><head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-K4/+E4BtlXYZbnwbuhsW+ToqCBR6vX5T4gaf0tdCL4E=' 'sha256-gKouD+qkXQKK0eBWikp9EWTDdL8XaDg9fHtr1DtIoIM='; style-src 'unsafe-inline'; img-src data:; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'"><link rel="icon" href="data:,">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-qQ+Xcw9Mk9mU/S5E5K0oj+nbz6mAVqdEcBmQR/Tnqpg=' 'sha256-gKouD+qkXQKK0eBWikp9EWTDdL8XaDg9fHtr1DtIoIM='; style-src 'unsafe-inline'; img-src data:; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'"><link rel="icon" href="data:,">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Stammbaum-Editor</title>
 <style>
@@ -407,10 +407,17 @@ function neuePerson(el) {
 function layout() {
   const P = daten.personen, n = P.length;
   const gen = new Map(P.map(p => [p.id, 0]));
+  // Geschwister nur in der Anzeige nach Alter ordnen, Älteste links (die Daten bleiben unverändert; 3D übernimmt die Folge).
+  // Geburtsdatum "JJJJ-MM-TT", auch nur "JJJJ" oder "JJJJ-MM": Zahl JJJJMMTT, fehlender Monat/Tag zählt als 0.
+  // Ohne auswertbares Jahr: hinter alle mit Datum. sort ist stabil, bei Gleichstand bleibt die bisherige Reihenfolge.
+  const geb = new Map(P.map(p => {
+    const m = /^(\d{4})(?:-(\d\d?)(?:-(\d\d?))?)?/.exec(p.geburtsdatum);
+    return [p.id, m ? m[1] * 10000 + (+m[2] || 0) * 100 + (+m[3] || 0) : Infinity];
+  }));
   const F = daten.ehen.map(e => ({
     e: e,
     pa: e.partner.filter(id => gen.has(id)).slice(0, 2),
-    ki: e.kinder.filter(id => gen.has(id))
+    ki: e.kinder.filter(id => gen.has(id)).sort((a, b) => (geb.get(a) - geb.get(b)) || 0)
   })).filter(f => f.pa.length);
 
   // Generation: Partner gleich hoch, Kinder eine Zeile tiefer. Begrenzt, damit Zyklen nicht hängen.
