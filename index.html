@@ -1,0 +1,2359 @@
+<!DOCTYPE html>
+<html lang="de"><head>
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-K4/+E4BtlXYZbnwbuhsW+ToqCBR6vX5T4gaf0tdCL4E=' 'sha256-gKouD+qkXQKK0eBWikp9EWTDdL8XaDg9fHtr1DtIoIM='; style-src 'unsafe-inline'; img-src data:; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'"><link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stammbaum-Editor</title>
+<style>
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{display:flex;flex-direction:column;font:16px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#1f2933;background:#f4f1ea;overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{min-height:44px;min-width:44px;padding:0 14px;border:1px solid #b9c2cc;border-radius:8px;background:#fff;cursor:pointer}
+h2{font-size:19px;margin:0}
+h3{font-size:15px;margin:16px 0 8px}
+
+header{display:flex;gap:8px;align-items:center;padding:6px 8px;background:#2f4858}
+#titel{flex:1;min-width:0;height:44px;border:1px solid transparent;border-radius:8px;background:rgba(255,255,255,.14);color:#fff;padding:0 10px;font-weight:600}
+#titel::placeholder{color:rgba(255,255,255,.6)}
+.seg{display:flex}
+.seg button{padding:0 10px;border-radius:0}
+.seg button:first-child{border-radius:8px 0 0 8px}
+.seg button:last-child{border-radius:0 8px 8px 0;border-left:0}
+.seg button[aria-pressed=true]{background:#ffc857;font-weight:600}
+.deck{position:fixed;left:0;top:0;right:0;bottom:0;z-index:10;overflow:auto;padding:16px;background:#f4f1ea}
+.deck.halb{background:rgba(20,28,40,.6)}
+.kasten{max-width:420px;margin:5vh auto 0;padding:16px;background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.25)}
+.kasten h2{margin-bottom:10px}
+.status{min-height:1.4em;margin:8px 0;font-size:14px;color:#b3261e}
+.status.neutral{color:#556}
+.knopf{display:flex;align-items:center;justify-content:center;min-height:48px;margin:8px 0;padding:0 14px;border-radius:8px;background:#2f4858;color:#fff;font-weight:600;text-decoration:none}
+#startForm .reihe{position:sticky;bottom:0;margin:0 -16px -16px;padding:10px 16px 16px;background:#fff;border-radius:0 0 12px 12px}
+.warnung{margin:8px 0;padding:8px 10px;border-radius:8px;background:#fff4dd;color:#7a4200;font-size:14px;font-weight:600}
+#bSpeichern.offen::after{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;background:#e4572e;margin-left:8px}
+
+#haupt{flex:1;display:flex;min-height:0}
+#buehne{flex:1;position:relative;min-width:0;min-height:0;overflow:hidden}
+#buehne.d3{background:#0b1020}
+#flaeche{position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;cursor:grab}
+#welt{position:absolute;left:0;top:0;transform-origin:0 0}
+#welt svg{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible}
+#cv{display:none;width:100%;height:100%}
+.d3 #welt{display:none}
+.d3 #cv{display:block}
+.le{stroke:#b5762a;stroke-width:2;fill:none}
+.lp{stroke-dasharray:6 5}
+.aus{stroke:#c0392b;stroke-width:2.5;fill:none;stroke-linecap:round}
+.lk{stroke:#4a6572;stroke-width:2;fill:none}
+.ring{stroke:#b5762a;stroke-width:1.5;fill:#fff}
+.hd{font-size:11px;fill:#7a4e16;text-anchor:middle}
+.karte{position:absolute;width:160px;height:84px;padding:4px 8px;display:flex;flex-direction:column;justify-content:center;text-align:center;line-height:1.25;border:1px solid #8a9aa9;border-radius:10px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.15);overflow:hidden}
+.karte span{display:block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vn{font-weight:600}
+.vn small{font-weight:400;font-size:11px;color:#667}
+.dat{font-size:11px;color:#556}
+.karte.tot{background:#e6e7e9;color:#6a6f76;border-color:#b5b8bd}
+.karte.gewaehlt{outline:3px solid #e4572e;outline-offset:1px}
+
+.zoom{position:absolute;right:10px;bottom:10px;display:flex;gap:6px}
+.zoom button{box-shadow:0 1px 4px rgba(0,0,0,.25)}
+#legende{display:none;position:absolute;left:10px;top:10px;right:10px;flex-wrap:wrap;gap:4px 14px;align-items:center;color:#dfe6f5;font-size:13px;pointer-events:none}
+.d3 #legende{display:flex}
+#legende span{white-space:nowrap}
+#legende i{display:inline-block;width:22px;height:3px;margin-right:6px;vertical-align:middle}
+
+#start{position:absolute;left:0;top:0;right:0;bottom:0;overflow:auto;padding:16px;background:#f4f1ea}
+#start form{max-width:420px;margin:0 auto;padding:16px;background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+#start h2{margin-bottom:12px}
+
+#panel{flex:none;width:340px;overflow-y:auto;padding:12px;background:#fff;border-left:1px solid #cfd6dd}
+label{display:block;font-size:13px;color:#556;margin-bottom:8px}
+label input:not([type=radio]):not([type=checkbox]),label select,label textarea{display:block;width:100%;min-height:44px;margin-top:2px;padding:6px 10px;font-size:16px;color:#1f2933;border:1px solid #b9c2cc;border-radius:8px;background:#fff}
+label textarea{min-height:80px;resize:vertical}
+.pkopf{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.pkopf h2{flex:1;min-width:0;overflow-wrap:anywhere}
+#pZu{font-size:24px;padding:0}
+.reihe{display:flex;gap:8px;margin:10px 0}
+.reihe button{flex:1}
+.primaer{background:#2f4858;color:#fff;border-color:#2f4858}
+.gefahr{width:100%;margin-top:14px;color:#b3261e;border-color:#b3261e}
+.ehe{margin-bottom:8px;padding:8px;border:1px solid #d8dee4;border-radius:10px}
+.link{margin:2px;padding:0 12px;border-radius:22px;background:#eef3f6}
+.ekopf{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.kind{display:inline-flex;align-items:center;margin-right:6px}
+.lz{padding:0;font-size:22px;color:#b3261e;border-color:#e3b5b1}
+.ringe{vertical-align:-1px;fill:none;stroke:currentColor;stroke-width:1.5}
+.leer{color:#667;font-size:14px}
+.wahl label{display:flex;align-items:center;gap:10px;min-height:44px;margin:0;font-size:16px;color:inherit}
+.wahl input{width:22px;height:22px;margin:0}
+
+@media (max-width:700px){
+  #haupt{flex-direction:column}
+  #panel{width:auto;max-height:55%;border-left:0;border-radius:16px 16px 0 0;box-shadow:0 -4px 16px rgba(0,0,0,.25);z-index:2;padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+  #panel::before{content:"";display:block;width:44px;height:4px;margin:0 auto 8px;border-radius:2px;background:#c5ccd3}
+  header{gap:6px}
+  header button{padding:0 10px}
+  #bNeu .lang{display:none}
+  #bNeu{font-size:22px;padding:0}
+  #titel{padding:0 6px}
+}
+</style>
+</head>
+<body>
+<header>
+  <input id="titel" type="text" placeholder="Titel des Stammbaums" aria-label="Titel des Stammbaums">
+  <div class="seg">
+    <button type="button" id="b2d" aria-pressed="true">2D</button>
+    <button type="button" id="b3d" aria-pressed="false">3D</button>
+  </div>
+  <button type="button" id="bNeu" aria-label="Person ohne Verbindung anlegen" title="Person ohne Verbindung anlegen">+<span class="lang"> Person</span></button>
+  <button type="button" id="bSpeichern">Speichern</button>
+</header>
+<div id="haupt">
+  <div id="buehne">
+    <div id="flaeche">
+      <div id="welt"></div>
+      <canvas id="cv"></canvas>
+    </div>
+    <div id="legende"><span><i style="background:#ffc857"></i>Ehe</span><span><i style="background:repeating-linear-gradient(90deg,#ffc857 0 5px,transparent 5px 9px)"></i>Partnerschaft</span><span><b style="color:#ff8a65">/</b> beendet</span><span><i style="background:#a9743f;height:5px"></i>Eltern–Kind (Ast)</span></div>
+    <div class="zoom">
+      <button type="button" id="zPlus" aria-label="Vergrößern">+</button>
+      <button type="button" id="zMinus" aria-label="Verkleinern">−</button>
+      <button type="button" id="zFit">Einpassen</button>
+    </div>
+    <div id="start" hidden="">
+      <form id="startForm">
+        <h2 id="startTitel">Grundperson anlegen</h2>
+        <div id="startFelder"></div>
+        <div class="reihe"><button type="submit" class="primaer">Anlegen</button><button type="button" id="startAbbr" hidden="">Abbrechen</button></div>
+      </form>
+    </div>
+  </div>
+  <aside id="panel" hidden=""></aside>
+</div>
+<div id="sperre" class="deck" hidden="">
+  <form id="sperrForm" class="kasten">
+    <h2>Diese Datei ist geschützt</h2>
+    <p>Bitte das Passwort eingeben, um den Stammbaum zu öffnen.</p>
+    <label>Passwort<input type="password" id="spPw" autocomplete="off"></label>
+    <p id="spStatus" class="status" role="status"></p>
+    <div class="reihe"><button type="submit" class="primaer" id="spOk">Entsperren</button></div>
+  </form>
+</div>
+<div id="speicherDialog" class="deck halb" hidden="">
+  <form id="sdForm" class="kasten">
+    <h2>Speichern</h2>
+    <div id="sdEingabe">
+      <div class="wahl"><label><input type="checkbox" id="sdVerschl"> Mit Passwort verschlüsseln</label></div>
+      <div id="sdBekannt" hidden="">
+        <p class="leer">Das bisherige Passwort wird wiederverwendet. Haken oben entfernen = Verschlüsselung entfernen.</p>
+        <div class="wahl"><label><input type="checkbox" id="sdAendern"> Passwort ändern</label></div>
+      </div>
+      <div id="sdPw" hidden="">
+        <label>Passwort (mindestens 8 Zeichen)<input type="password" id="sdPw1" autocomplete="new-password"></label>
+        <label>Passwort wiederholen<input type="password" id="sdPw2" autocomplete="new-password"></label>
+        <p class="leer">Tipp: ein langer Satz oder vier zufällige Wörter sind sicherer als ein kurzes Passwort mit Familiennamen.</p>
+      </div>
+      <p id="sdWarnung" class="warnung" hidden="">Passwort vergessen = Daten verloren. Es gibt keine Wiederherstellung.</p>
+      <p id="sdEntf" class="warnung" hidden="">Die Verschlüsselung wird entfernt: Die Datei wird im Klartext gespeichert.</p>
+    </div>
+    <div id="sdFertig" hidden="">
+      <p>Die verschlüsselte Datei ist fertig. Bitte jetzt herunterladen:</p>
+      <a id="sdLink" class="knopf">Datei herunterladen</a>
+    </div>
+    <p id="sdStatus" class="status" role="status"></p>
+    <div class="reihe"><button type="submit" class="primaer" id="sdOk">Speichern</button><button type="button" id="sdAbbr">Abbrechen</button></div>
+  </form>
+</div>
+
+<script type="application/json" id="stammbaum-daten">{"version":1,"titel":"","personen":[],"ehen":[]}</script>
+<script>
+'use strict';
+// Kopie des Dokuments als Grundlage für "Speichern" – auf die leere Programmhülle zurückgesetzt.
+// Wurde die geöffnete Datei z. B. mit "Seite speichern unter" des Browsers erzeugt, kann sie gerenderte Karten,
+// Panel-Inhalte oder offene Dialoge enthalten. Davon darf nichts in eine neu gespeicherte Datei gelangen.
+function bereinige(k) {
+  const q = s => k.querySelector(s), alle = s => Array.from(k.querySelectorAll(s));
+  const nur = (el, erlaubt) => { if (el) Array.from(el.attributes).forEach(a => { if (erlaubt.indexOf(a.name) < 0) el.removeAttribute(a.name); }); };
+  const fremd = (el, erlaubt) => {
+    if (el) Array.from(el.childNodes).forEach(n => {
+      if (n.nodeType === 1 ? !n.matches(erlaubt) : n.nodeType !== 3 || n.textContent.trim()) n.remove();
+    });
+  };
+  // Nur die bekannten Teile von Kopf und Rumpf behalten
+  nur(k, ['lang']); nur(q('head'), []); nur(q('body'), []);
+  fremd(q('head'), 'meta[charset],meta[name=viewport],title,style');
+  fremd(q('body'), 'header,#haupt,#sperre,#speicherDialog,script');
+  alle('head style').slice(1).forEach(el => el.remove());
+  alle('body script').forEach((el, i) => { if (i > 1) el.remove(); });
+  if (q('title')) q('title').textContent = 'Stammbaum-Editor';
+  // Alles leeren, was das Programm zur Laufzeit befüllt
+  ['#welt', '#panel', '#startFelder', '#spStatus', '#sdStatus'].forEach(s => { if (q(s)) q(s).textContent = ''; });
+  if (q('#startTitel')) q('#startTitel').textContent = 'Grundperson anlegen';
+  // Sichtbarkeit und Zustände wie im Auslieferungszustand
+  ['#panel', '#start', '#startAbbr', '#sperre', '#speicherDialog', '#sdBekannt', '#sdPw', '#sdWarnung', '#sdEntf', '#sdFertig'].forEach(s => { if (q(s)) q(s).setAttribute('hidden', ''); });
+  ['#sdEingabe', '#sdOk', '#spOk'].forEach(s => { if (q(s)) { q(s).removeAttribute('hidden'); q(s).removeAttribute('disabled'); } });
+  ['header', '#haupt'].forEach(s => { if (q(s)) q(s).removeAttribute('inert'); });
+  nur(q('#buehne'), ['id']); nur(q('#welt'), ['id']); nur(q('#cv'), ['id']);
+  nur(q('#bSpeichern'), ['type', 'id']); nur(q('#sdLink'), ['id', 'class']);
+  if (q('#b2d')) q('#b2d').setAttribute('aria-pressed', 'true');
+  if (q('#b3d')) q('#b3d').setAttribute('aria-pressed', 'false');
+  ['#spStatus', '#sdStatus'].forEach(s => { if (q(s)) q(s).setAttribute('class', 'status'); });
+  alle('input,textarea,select,option').forEach(el => { ['value', 'checked', 'selected', 'disabled'].forEach(a => el.removeAttribute(a)); });
+  alle('textarea').forEach(el => { el.textContent = ''; });
+  return k;
+}
+// Erst das geöffnete Dokument selbst zurücksetzen (alte Karten, offenes Panel oder Dialoge aus einer
+// "verschmutzten" Datei verschwinden), dann die Kopie für das Speichern nehmen.
+const vorlage = bereinige(document.documentElement).cloneNode(true);
+
+const $ = s => document.querySelector(s);
+const KW = 160, KH = 84, SLOT = 230, ZH = 174;
+const LESBAR = 0.7; // kleinste Skalierung der Grundansicht (Karte dann ca. 59 px hoch)
+const RINGE = '<svg class="ringe" viewBox="0 0 20 12" width="20" height="12"><circle cx="7" cy="6" r="4.5"/><circle cx="13" cy="6" r="4.5"/></svg>';
+const FELDER = ['vorname', 'zweitname', 'nachname', 'geburtsdatum', 'sterbedatum', 'notiz'];
+
+let daten = { version: 2, titel: '', personen: [], ehen: [] };
+let gesperrt = null; // verschlüsselter Datenblock, solange die Datei noch nicht entsperrt ist
+let basis = null;    // Schlüsselmaterial aus dem Passwort (nicht auslesbarer CryptoKey) – nur im Arbeitsspeicher
+// Übernimmt geladene Daten. Ältere Dateien (Version 1) kennen die neueren Felder noch nicht: Standardwerte ergänzen.
+// Falsche Datentypen (z. B. eine Zahl als Datum) werden in Text umgewandelt, damit eine kaputte Datei nie die Anzeige sprengt.
+function uebernimm(d) {
+  if (!(d && Array.isArray(d.personen) && Array.isArray(d.ehen))) return false;
+  const text = v => v == null ? '' : String(v), objekt = x => x && typeof x === 'object' && !Array.isArray(x);
+  const liste = v => Array.isArray(v) ? v.map(text) : [];
+  daten = d;
+  daten.version = 2;
+  daten.titel = text(d.titel);
+  daten.personen = d.personen.filter(objekt);
+  daten.personen.forEach(p => {
+    p.id = text(p.id) || 'p' + Math.random().toString(36).slice(2, 9);
+    FELDER.forEach(f => { p[f] = text(p[f]); });
+    p.sterbedatumUnbekannt = p.sterbedatumUnbekannt === true && !p.sterbedatum;
+    p.adresse = text(p.adresse);
+  });
+  daten.ehen = d.ehen.filter(objekt);
+  daten.ehen.forEach(e => {
+    e.id = text(e.id) || 'e' + Math.random().toString(36).slice(2, 9);
+    e.partner = liste(e.partner); e.kinder = liste(e.kinder);
+    e.heiratsdatum = text(e.heiratsdatum);
+    e.art = e.art === 'partnerschaft' ? 'partnerschaft' : 'ehe';
+    e.endedatum = text(e.endedatum);
+  });
+  return true;
+}
+try {
+  const d = JSON.parse($('#stammbaum-daten').textContent);
+  if (d && d.verschluesselt) gesperrt = d; else uebernimm(d);
+} catch (e) { /* leerer Stammbaum */ }
+
+/* ---------- Verschlüsselung (Web Crypto: PBKDF2-SHA-256 -> AES-GCM 256) ---------- */
+const ITERATIONEN = 600000;
+const kannKrypto = () => !!(window.crypto && crypto.subtle && window.TextEncoder);
+const b64 = u8 => { let s = ''; for (let i = 0; i < u8.length; i += 8192) s += String.fromCharCode.apply(null, u8.subarray(i, i + 8192)); return btoa(s); };
+const unb64 = s => { const b = atob(s), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; };
+const basisAus = pw => crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
+const aesAus = (b, salt, iter) => crypto.subtle.deriveKey({ name: 'PBKDF2', hash: 'SHA-256', salt: salt, iterations: iter }, b, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+// Verschlüsselt einen Text; Salt und IV werden bei jedem Aufruf neu gewürfelt.
+async function verschluessle(b, text) {
+  const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, await aesAus(b, salt, ITERATIONEN), new TextEncoder().encode(text));
+  return { verschluesselt: true, v: 1, kdf: 'PBKDF2-SHA256', iter: ITERATIONEN, salt: b64(salt), iv: b64(iv), ct: b64(new Uint8Array(ct)) };
+}
+// Entschlüsselt einen Datenblock; wirft bei falschem Passwort oder veränderten Daten.
+async function entschluessle(b, block) {
+  // Nur ein enger Bereich der Iterationszahl gilt: eine Datei mit z. B. 1 Iteration wird als beschädigt abgelehnt.
+  if (block.v !== 1 || block.kdf !== 'PBKDF2-SHA256' || !Number.isInteger(block.iter) || block.iter < ITERATIONEN || block.iter > 2000000) throw new Error('Format');
+  const klar = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(block.iv) }, await aesAus(b, unb64(block.salt), block.iter), unb64(block.ct));
+  return new TextDecoder().decode(klar);
+}
+
+const fl = $('#flaeche'), welt = $('#welt'), cv = $('#cv'), ctx = cv.getContext('2d');
+const buehne = $('#buehne'), panel = $('#panel');
+let L, auswahl = null, ansicht = 'person', modus3d = false, offen = false;
+let tx = 0, ty = 0, sk = 1;
+const cam = { yaw: 0.5, pitch: 0.15, dist: 900 };
+let p3 = new Map(), treffer = [];
+
+/* ---------- Hilfen ---------- */
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const fd = d => d ? d.split('-').reverse().join('.') : '';
+const istTot = p => !!(p.sterbedatum || p.sterbedatumUnbekannt);
+// Beschriftung einer Verbindung – gemeinsam für 2D und 3D. Ehe: Heiratsdatum; Partnerschaft: „seit Jahr“;
+// beendet (Scheidung/Trennung): „Jahr – Jahr“.
+function eheText(e) {
+  const jahr = d => d ? d.slice(0, 4) : '';
+  if (e.endedatum) return e.heiratsdatum ? jahr(e.heiratsdatum) + ' – ' + jahr(e.endedatum) : 'bis ' + jahr(e.endedatum);
+  if (e.art === 'partnerschaft') return e.heiratsdatum ? 'seit ' + jahr(e.heiratsdatum) : '';
+  return fd(e.heiratsdatum);
+}
+const grenze = (v, a, b) => Math.max(a, Math.min(b, v));
+const person = id => daten.personen.find(p => p.id === id);
+const nameVon = p => [p.vorname, p.nachname].map(s => (s || '').trim()).filter(Boolean).join(' ') || 'Unbenannt';
+const nachName = (a, b) => nameVon(a).localeCompare(nameVon(b), 'de');
+const neueId = pre => pre + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+function geaendert() {
+  offen = true;
+  const b = $('#bSpeichern');
+  b.classList.add('offen');
+  b.title = 'Ungespeicherte Änderungen';
+}
+function raeumeAuf(ehen) {
+  for (let i = ehen.length - 1; i >= 0; i--) {
+    const e = ehen[i];
+    if (!e.partner.length || (e.partner.length < 2 && !e.kinder.length)) ehen.splice(i, 1);
+  }
+}
+function aufraeumen() { raeumeAuf(daten.ehen); }
+
+/* ---------- Verbindungen ändern – mit einer gemeinsamen Prüfung ---------- */
+// Sind die Generationen widerspruchsfrei? Partner stehen in derselben Generation, Kinder sind jünger als
+// ihre Eltern. Ein Kreis aus diesen Regeln (z. B. Kind = Vorfahre oder Partner = eigenes Kind) ist ein Widerspruch.
+function stimmig(ehen) {
+  const chef = new Map();
+  const finde = x => {
+    if (!chef.has(x)) chef.set(x, x);
+    let r = x;
+    while (chef.get(r) !== r) r = chef.get(r);
+    chef.set(x, r);
+    return r;
+  };
+  for (const e of ehen) for (let i = 1; i < e.partner.length; i++) chef.set(finde(e.partner[i]), finde(e.partner[0]));
+  const nach = new Map(), grad = new Map();
+  for (const e of ehen) for (const q of e.partner) for (const k of e.kinder) {
+    const a = finde(q), b = finde(k);
+    if (a === b) return false;
+    if (!nach.has(a)) nach.set(a, []);
+    nach.get(a).push(b);
+    grad.set(b, (grad.get(b) || 0) + 1);
+    if (!grad.has(a)) grad.set(a, 0);
+  }
+  const frei = [];
+  grad.forEach((g, k) => { if (!g) frei.push(k); });
+  let n = 0;
+  while (frei.length) {
+    n++;
+    (nach.get(frei.pop()) || []).forEach(b => { grad.set(b, grad.get(b) - 1); if (!grad.get(b)) frei.push(b); });
+  }
+  return n === grad.size;
+}
+// Probiert eine Änderung auf einer Kopie der Verbindungen aus.
+function erlaubt(aendere) {
+  const k = daten.ehen.map(e => ({ id: e.id, partner: e.partner.slice(), heiratsdatum: e.heiratsdatum, kinder: e.kinder.slice() }));
+  if (!stimmig(k)) return true; // Daten sind schon widersprüchlich: nicht zusätzlich blockieren
+  aendere(k);
+  return stimmig(k);
+}
+function ausfuehren(aendere) {
+  if (!erlaubt(aendere)) {
+    alert('Das passt nicht zusammen: Dadurch wäre jemand zugleich Vorfahre und Nachkomme (oder Partner) derselben Person. Die Verbindung wurde nicht angelegt.');
+    return false;
+  }
+  aendere(daten.ehen);
+  return true;
+}
+// Kind in genau eine Eltern-Verbindung hängen: in die Ehe "eheId" oder zu den Personen in "eltern" (1 oder 2).
+function opKind(ehen, kind, eheId, eltern, datum) {
+  ehen.forEach(e => { e.kinder = e.kinder.filter(k => k !== kind); });
+  let e = eheId ? ehen.find(x => x.id === eheId)
+    : ehen.find(x => x.partner.length === eltern.length && eltern.every(q => x.partner.indexOf(q) >= 0));
+  if (!e) { e = { id: neueId('e'), partner: eltern.slice(), heiratsdatum: eltern.length > 1 ? datum || '' : '', kinder: [], art: 'ehe', endedatum: '' }; ehen.push(e); }
+  e.kinder.push(kind);
+  raeumeAuf(ehen);
+}
+function opHeirat(ehen, a, b, datum, art, ende) {
+  ehen.push({ id: neueId('e'), partner: [a, b], heiratsdatum: datum || '', kinder: [], art: art === 'partnerschaft' ? art : 'ehe', endedatum: ende || '' });
+}
+// Zweiten Elternteil ergänzen. Ohne "alle": nur dieses Kind bekommt die Paar-Verbindung (die bestehende Ehe der
+// beiden oder eine neue), seine Geschwister bleiben beim einen Elternteil. Mit "alle": alle Kinder der
+// Ein-Elternteil-Verbindung bekommen den zweiten Elternteil.
+function opZweiter(ehen, kind, eheId, b, datum, alle) {
+  const e = ehen.find(x => x.id === eheId), a = e.partner[0];
+  const paar = ehen.find(x => x.partner.length === 2 && x.partner.indexOf(a) >= 0 && x.partner.indexOf(b) >= 0);
+  if (!alle) opKind(ehen, kind, '', [a, b], datum);
+  else if (paar) e.kinder.slice().forEach(k => opKind(ehen, k, paar.id));
+  else { e.partner.push(b); e.heiratsdatum = datum || ''; }
+}
+function felderHtml(p) {
+  return '<label>Vorname<input type="text" data-f="vorname" value="' + esc(p.vorname) + '"></label>' +
+    '<label>Zweiter Vorname<input type="text" data-f="zweitname" value="' + esc(p.zweitname) + '"></label>' +
+    '<label>Nachname<input type="text" data-f="nachname" value="' + esc(p.nachname) + '"></label>' +
+    '<label>Geburtsdatum<input type="date" data-f="geburtsdatum" value="' + esc(p.geburtsdatum) + '"></label>' +
+    '<label>Sterbedatum<input type="date" data-f="sterbedatum" value="' + esc(p.sterbedatum) + '"></label>' +
+    '<div class="wahl"><label><input type="checkbox" data-f="sterbedatumUnbekannt"' + (p.sterbedatumUnbekannt && !p.sterbedatum ? ' checked' : '') + (p.sterbedatum ? ' disabled' : '') + '> verstorben, Datum unbekannt</label></div>' +
+    '<label>Adresse<textarea data-f="adresse">' + esc(p.adresse) + '</textarea></label>' +
+    '<label>Notiz<textarea data-f="notiz">' + esc(p.notiz) + '</textarea></label>';
+}
+function liesFelder(el) {
+  const p = {};
+  el.querySelectorAll('[data-f]').forEach(i => { p[i.dataset.f] = i.type === 'checkbox' ? i.checked : i.value.trim(); });
+  if (p.sterbedatum) p.sterbedatumUnbekannt = false; // ein eingetragenes Datum gilt
+  return p;
+}
+// Liest eine neue Person aus einem Formular (ohne sie schon anzulegen).
+function lesePerson(el) {
+  const n = liesFelder(el);
+  if (!n.vorname && !n.nachname) { alert('Bitte mindestens einen Vor- oder Nachnamen eingeben.'); return null; }
+  return Object.assign({ id: neueId('p') }, n);
+}
+function neuePerson(el) {
+  const p = lesePerson(el);
+  if (p) daten.personen.push(p);
+  return p;
+}
+
+/* ---------- Layout (Generationen + x-Positionen) ---------- */
+function layout() {
+  const P = daten.personen, n = P.length;
+  const gen = new Map(P.map(p => [p.id, 0]));
+  const F = daten.ehen.map(e => ({
+    e: e,
+    pa: e.partner.filter(id => gen.has(id)).slice(0, 2),
+    ki: e.kinder.filter(id => gen.has(id))
+  })).filter(f => f.pa.length);
+
+  // Generation: Partner gleich hoch, Kinder eine Zeile tiefer. Begrenzt, damit Zyklen nicht hängen.
+  for (let r = 0; r < n + 2; r++) {
+    let neu = false;
+    for (const f of F) {
+      const g = Math.max.apply(null, f.pa.map(id => gen.get(id)));
+      for (const id of f.pa) if (gen.get(id) < g) { gen.set(id, g); neu = true; }
+      const kg = Math.min(g + 1, n);
+      for (const id of f.ki) if (gen.get(id) < kg) { gen.set(id, kg); neu = true; }
+    }
+    if (!neu) break;
+  }
+
+  const ehenVon = new Map(P.map(p => [p.id, []])), eltern = new Map();
+  for (const f of F) {
+    f.pa.forEach(id => ehenVon.get(id).push(f));
+    f.ki.forEach(id => { if (!eltern.has(id)) eltern.set(id, f); });
+  }
+
+  // Reihenfolge je Zeile: Tiefensuche, Partner nebeneinander.
+  const zeilen = [], platz = new Set(), besucht = new Set();
+  const setze = id => {
+    if (platz.has(id)) return;
+    platz.add(id);
+    const g = gen.get(id);
+    (zeilen[g] || (zeilen[g] = [])).push(id);
+  };
+  const besuche = id => {
+    if (besucht.has(id)) return;
+    besucht.add(id);
+    const fs = ehenVon.get(id), frei = [];
+    fs.forEach(f => f.pa.forEach(q => { if (q !== id && !platz.has(q) && frei.indexOf(q) < 0) frei.push(q); }));
+    if (!platz.has(id) && frei.length > 1) setze(frei.shift());
+    setze(id);
+    frei.forEach(setze);
+    fs.forEach(f => f.ki.forEach(besuche));
+    fs.forEach(f => f.pa.forEach(besuche));
+  };
+  P.filter(p => !eltern.has(p.id)).sort((a, b) => gen.get(a.id) - gen.get(b.id)).forEach(p => besuche(p.id));
+  P.forEach(p => besuche(p.id));
+
+  const pos = new Map();
+  for (let g = 0; g < zeilen.length; g++) {
+    const z = zeilen[g] || (zeilen[g] = []);
+    z.forEach((id, i) => pos.set(id, { x: i * SLOT, y: g * ZH, g: g, i: i }));
+  }
+  const nachbarn = (a, b) => a.g === b.g && Math.abs(a.i - b.i) === 1;
+  const schiebe = (g, i, d) => { const z = zeilen[g]; for (let k = i; k < z.length; k++) pos.get(z[k]).x += d; };
+  const anker = f => {
+    const q = f.pa.map(id => pos.get(id)).sort((a, b) => a.x - b.x);
+    if (q.length < 2) return q[0].x;
+    return nachbarn(q[0], q[1]) ? (q[0].x + q[1].x) / 2 : q[1].x;
+  };
+  const mitte = f => {
+    const xs = f.ki.map(id => pos.get(id).x);
+    return (Math.min.apply(null, xs) + Math.max.apply(null, xs)) / 2;
+  };
+  const linkester = (ids, id) => ids.reduce((m, q) => pos.get(q).x < pos.get(m).x ? q : m, id);
+
+  // Eltern über Kinder und Kinder unter Eltern rücken (nur nach rechts, feste Zahl Durchläufe).
+  for (let r = 0; r < 3; r++) {
+    for (let g = zeilen.length - 1; g >= 0; g--) for (const id of zeilen[g]) for (const f of ehenVon.get(id)) {
+      if (!f.ki.length || linkester(f.pa, id) !== id) continue;
+      const d = mitte(f) - anker(f);
+      if (d > 1) schiebe(g, pos.get(id).i, d);
+    }
+    for (let g = 0; g < zeilen.length; g++) for (const id of zeilen[g]) {
+      const f = eltern.get(id);
+      if (!f || linkester(f.ki, id) !== id) continue;
+      const d = anker(f) - mitte(f);
+      if (d > 1) schiebe(g, pos.get(id).i, d);
+    }
+  }
+
+  let minX = Infinity, maxX = 0;
+  pos.forEach(q => { minX = Math.min(minX, q.x); });
+  pos.forEach(q => { q.x -= minX; maxX = Math.max(maxX, q.x); });
+  return { pos: pos, F: F, breite: maxX, maxG: Math.max(0, zeilen.length - 1), nachbarn: nachbarn };
+}
+
+// Beschriftung einer Person – gemeinsam für 2D-Karte und 3D-Kugel.
+function kartenText(p) {
+  return {
+    vn: p.vorname || (p.nachname ? '' : 'Unbenannt'),
+    zn: p.zweitname || '',
+    nn: p.nachname || '',
+    dat: [p.geburtsdatum ? '* ' + fd(p.geburtsdatum) : '', p.sterbedatum ? '† ' + fd(p.sterbedatum) : (p.sterbedatumUnbekannt ? '†' : '')].filter(Boolean)
+  };
+}
+
+/* ---------- 2D ---------- */
+function zeichne2d() {
+  let svg = '', html = '';
+  const versatz = {};
+  for (const f of L.F) {
+    const ps = f.pa.map(id => L.pos.get(id)).sort((a, b) => a.x - b.x);
+    const a = ps[0], b = ps[1];
+    let ax = a.x + KW / 2, ay = a.y + KH, ag = a.g; // Startpunkt der Linie zu den Kindern
+    if (b) {
+      // Ehe: Linie mit Ringen; Partnerschaft: gestrichelt ohne Ringe; beendet: zusätzlich ein Schrägstrich.
+      const part = f.e.art === 'partnerschaft', kl = part ? 'le lp' : 'le', text = eheText(f.e);
+      let mx, my;
+      if (L.nachbarn(a, b)) {
+        mx = (a.x + KW + b.x) / 2; my = a.y + KH / 2;
+        svg += '<path class="' + kl + '" d="M' + (a.x + KW) + ' ' + my + 'H' + b.x + '"/>';
+        ax = mx; ay = my;
+      } else {
+        const ac = a.x + KW / 2, bc = b.x + KW / 2;
+        if (a.g === b.g) {
+          mx = (ac + bc) / 2; my = a.y - 14;
+          svg += '<path class="' + kl + '" d="M' + ac + ' ' + a.y + 'V' + my + 'H' + bc + 'V' + b.y + '"/>';
+        } else {
+          mx = (ac + bc) / 2; my = (a.y + b.y + KH) / 2;
+          svg += '<path class="' + kl + '" d="M' + ac + ' ' + (a.y + KH / 2) + 'L' + bc + ' ' + (b.y + KH / 2) + '"/>';
+        }
+        ax = bc; ay = b.y + KH; ag = b.g;
+      }
+      if (!part) svg += '<circle class="ring" cx="' + (mx - 3.5) + '" cy="' + my + '" r="5"/><circle class="ring" cx="' + (mx + 3.5) + '" cy="' + my + '" r="5" fill-opacity="0.6"/>';
+      if (f.e.endedatum) svg += '<path class="aus" d="M' + (mx - 6) + ' ' + (my + 9) + 'L' + (mx + 6) + ' ' + (my - 9) + '"/>';
+      if (text) svg += '<text class="hd" x="' + mx + '" y="' + (my - 12) + '">' + esc(text) + '</text>';
+    }
+    if (f.ki.length) {
+      const nr = versatz[ag] = (versatz[ag] || 0) + 1;
+      const by = ag * ZH + KH + 20 + (nr % 3) * 10;
+      const xs = [ax];
+      let d = '';
+      for (const id of f.ki) {
+        const k = L.pos.get(id), kx = k.x + KW / 2;
+        if (k.y > by) { xs.push(kx); d += 'M' + kx + ' ' + by + 'V' + k.y; }
+        else d += 'M' + ax + ' ' + ay + 'L' + kx + ' ' + (k.y + KH / 2);
+      }
+      if (xs.length > 1) d += 'M' + ax + ' ' + ay + 'V' + by + 'M' + Math.min.apply(null, xs) + ' ' + by + 'H' + Math.max.apply(null, xs);
+      svg += '<path class="lk" d="' + d + '"/>';
+    }
+  }
+  for (const p of daten.personen) {
+    const q = L.pos.get(p.id);
+    const k = kartenText(p), dat = k.dat.join('  ');
+    html += '<button type="button" class="karte' + (istTot(p) ? ' tot' : '') + (p.id === auswahl ? ' gewaehlt' : '') +
+      '" data-id="' + esc(p.id) + '" style="left:' + q.x + 'px;top:' + q.y + 'px">' +
+      '<span class="vn">' + esc(k.vn) + (k.zn ? ' <small>' + esc(k.zn) + '</small>' : '') + '</span>' +
+      '<span>' + esc(k.nn) + '</span>' +
+      (dat ? '<span class="dat">' + esc(dat) + '</span>' : '') + '</button>';
+  }
+  welt.innerHTML = '<svg>' + svg + '</svg>' + html;
+}
+function anwenden() {
+  welt.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + sk + ')';
+}
+function zoomAn(px, py, f) {
+  const ns = grenze(sk * f, 0.002, 3);
+  tx = px - (px - tx) * ns / sk;
+  ty = py - (py - ty) * ns / sk;
+  sk = ns;
+  anwenden();
+}
+
+/* ---------- 3D (Canvas 2D mit eigener Perspektive) ---------- */
+const SCHRIFT = 'px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
+const NULLPUNKT = { X: 0, Y: 0, Z: 0 };
+const FOK = 1600;        // Brennweite: größer = schwächere Perspektive (der runde Baum verzerrt sonst stark)
+const DISTMAX = 400000; // größter Kameraabstand (auch sehr große Bäume passen im Hochformat ganz ins Bild)
+let t3 = new Map(), zielId = null; // Kugeltexte; Person, um die die Kamera kreist (null = Baummitte)
+const schriftVon = (teil, f) => (teil.fett ? '600 ' : '') + teil.gr * f + SCHRIFT;
+// Textzeilen einer Kugel samt nötigem Radius (in Welt-Einheiten, Schriftgrößen wie auf der 2D-Karte).
+function kugelText(p, nurName) {
+  const k = kartenText(p), z = [], kopf = [];
+  if (k.vn) kopf.push({ t: k.vn, gr: 15, fett: true });
+  if (k.zn && !nurName) kopf.push({ t: (k.vn ? ' ' : '') + k.zn, gr: 11 });
+  if (kopf.length) z.push({ teile: kopf });
+  if (k.nn) z.push({ teile: [{ t: k.nn, gr: 15 }] });
+  if (!nurName) k.dat.forEach(d => z.push({ teile: [{ t: d, gr: 11 }] }));
+  let hoehe = 0, R = 0;
+  z.forEach(l => {
+    l.b = 0;
+    l.teile.forEach(teil => { ctx.font = schriftVon(teil, 1); teil.b = ctx.measureText(teil.t).width; l.b += teil.b; });
+    l.h = Math.max.apply(null, l.teile.map(teil => teil.gr)) * 1.2;
+    hoehe += l.h;
+  });
+  let y = -hoehe / 2;
+  z.forEach(l => { l.y = y + l.h / 2; R = Math.max(R, Math.hypot(l.b / 2, Math.abs(l.y) + l.h * 0.4)); y += l.h; });
+  return { z: z, R: R + 5 };
+}
+// 3D-Layout als Baum: älteste Generation unten in der Mitte (Stamm), jede jüngere Generation eine Ebene
+// höher und weiter außen. Jeder Teilbaum bekommt rund um die Hochachse einen Winkelbereich, der zu
+// seinem Platzbedarf passt, damit sich Äste nicht kreuzen. Eingeheiratete stehen neben ihrem Partner.
+let staemme = [], dicke3 = new Map(), startYaw = 0.5; // Stammfüße; Astdicke je Kind (aus der Zahl der Nachkommen); Blickrichtung beim Einpassen
+function baue3d() {
+  const ABST = 112, PAAR = 175, STUFE = 300; // Platz je Kugel am Ring; Abstand zwischen Partnern (Platz für Symbol und Datum); kleinster Ringabstand
+  p3 = new Map(); t3 = new Map(); staemme = []; dicke3 = new Map();
+  const P = daten.personen, gen = id => L.pos.get(id).g;
+  const famVon = new Map(P.map(p => [p.id, []])), hatEltern = new Set();
+  for (const f of L.F) { f.pa.forEach(id => famVon.get(id).push(f)); f.ki.forEach(id => hatEltern.add(id)); }
+  // Nachkommen zählen (zyklensicher)
+  const nach = new Map();
+  const zaehle = (id, pfad) => {
+    if (nach.has(id)) return nach.get(id);
+    if (pfad.has(id)) return 0;
+    pfad.add(id);
+    let n = 0;
+    for (const f of famVon.get(id)) for (const k of f.ki) n += 1 + zaehle(k, pfad);
+    pfad.delete(id);
+    nach.set(id, n);
+    return n;
+  };
+  P.forEach(p => zaehle(p.id, new Set()));
+  const hoehe = g => (L.maxG / 2 - g); // in Ebenen; ältere Generation = weiter unten (größeres Y)
+
+  // Knoten = Person mit ihren (noch nicht gesetzten) Partnern; Kinder = Knoten der Kinder.
+  const belegt = new Set();
+  const knoten = id => {
+    const frei = [];
+    for (const f of famVon.get(id)) for (const q of f.pa) if (q !== id && !belegt.has(q) && frei.indexOf(q) < 0) frei.push(q);
+    const kn = { g: gen(id), ids: frei.length > 1 ? [frei[0], id].concat(frei.slice(1)) : [id].concat(frei), kinder: [] };
+    kn.ids.forEach(x => belegt.add(x));
+    const kids = [];
+    for (const x of kn.ids) for (const f of famVon.get(x)) for (const k of f.ki) if (!belegt.has(k) && kids.indexOf(k) < 0) kids.push(k);
+    kids.sort((a, b) => L.pos.get(a).x - L.pos.get(b).x);
+    for (const k of kids) if (!belegt.has(k)) kn.kinder.push(knoten(k));
+    return kn;
+  };
+  // Platzbedarf als Winkel (bezogen auf Ringabstand 1): eigener Bedarf oder Summe der Kinder.
+  const bedarf = (kn, g0) => {
+    kn.d = Math.max(1, kn.g - g0);
+    let s = 0;
+    kn.kinder.forEach(c => { s += bedarf(c, g0); });
+    kn.need = Math.max(((kn.ids.length - 1) * PAAR + ABST) / kn.d, s);
+    return kn.need;
+  };
+  const kreise = []; // bereits belegte Grundflächen (für weitere Wurzeln)
+  let VH = 0;        // Höhe einer Ebene, vom Hauptbaum bestimmt
+  const setzeBaum = wurzelId => {
+    const wk = knoten(wurzelId), g0 = wk.g;
+    let summe = 0, tiefe = 0;
+    wk.kinder.forEach(c => { summe += bedarf(c, g0); });
+    const U = Math.max(STUFE, summe / (2 * Math.PI)); // Ringabstand: so groß, dass alles auf den Vollkreis passt
+    if (!VH) VH = Math.max(170, U * 0.75);            // Ebenenhöhe wächst mit, damit die Krone nicht flach wird
+    const orte = []; // erst relativ zur Baummitte, danach verschoben
+    const lege = (kn, a0, a1, wurzel) => {
+      const r = wurzel ? 0 : kn.d * U, n = kn.ids.length;
+      let sk2 = 0;
+      kn.kinder.forEach(c => { sk2 += c.need; });
+      const f = wurzel ? 2 * Math.PI / (sk2 || 1) : 1 / U; // Wurzel: Kinder füllen den Vollkreis
+      let a = (a0 + a1) / 2, c0 = wurzel ? a0 : a - sk2 * f / 2;
+      if (wurzel && kn.kinder.length) {
+        // Das Wurzel-Paar steht quer zur Richtung seines größten Astes: von dort gesehen stehen alle Paare nebeneinander.
+        let w0 = a0, gross = null;
+        kn.kinder.forEach(c => { if (!gross || c.need > gross.need) { gross = c; a = w0 + c.need * f / 2; } w0 += c.need * f; });
+      }
+      kn.a = a;
+      tiefe = Math.max(tiefe, r);
+      kn.ids.forEach((id, i) => {
+        const ab = (i - (n - 1) / 2) * PAAR, aa = r ? a + ab / r : a;
+        orte.push({ id: id, X: r ? r * Math.sin(aa) : ab * Math.cos(a), Z: r ? -r * Math.cos(aa) : ab * Math.sin(a), t: aa });
+      });
+      kn.kinder.forEach(c => { lege(c, c0, c0 + c.need * f, false); c0 += c.need * f; });
+    };
+    lege(wk, 0, 2 * Math.PI, true);
+    // Startblick des Hauptbaums: der größte Ast zeigt (leicht schräg) zur Kamera und steht so breit im Bild.
+    if (!kreise.length) startYaw = wk.a + 0.12;
+    // Platz für diesen Baum: der erste steht in der Mitte, weitere Wurzeln daneben (Richtung: verwandte Person im Hauptbaum).
+    const R = tiefe + ABST;
+    let cx = 0, cz = 0;
+    if (kreise.length) {
+      let wink = kreise.length * 2.4;
+      for (const o of orte) {
+        const rel = [];
+        for (const f of famVon.get(o.id)) f.pa.concat(f.ki).forEach(x => rel.push(x));
+        const v = rel.map(x => p3.get(x)).filter(Boolean)[0];
+        if (v) { wink = Math.atan2(v.X, -v.Z); break; }
+      }
+      let dist = kreise[0].R + R;
+      for (let i = 0; i < 500; i++) {
+        cx = dist * Math.sin(wink); cz = -dist * Math.cos(wink);
+        if (!kreise.some(k => Math.hypot(k.X - cx, k.Z - cz) < k.R + R)) break;
+        dist += ABST * 2;
+      }
+    }
+    kreise.push({ X: cx, Z: cz, R: R });
+    const kd = U / STUFE; // große Bäume: Äste und Stamm entsprechend kräftiger
+    orte.forEach(o => {
+      p3.set(o.id, { X: o.X + cx, Y: hoehe(gen(o.id)) * VH, Z: o.Z + cz, t: o.t });
+      dicke3.set(o.id, Math.min(40, kd * (3 + 2.4 * Math.sqrt(nach.get(o.id)))));
+    });
+    const fuss = wk.ids.map(id => p3.get(id));
+    staemme.push({
+      X: fuss.reduce((s, v) => s + v.X, 0) / fuss.length, Z: fuss.reduce((s, v) => s + v.Z, 0) / fuss.length,
+      Y: hoehe(g0) * VH, lang: VH * 0.6, dick: Math.min(90, kd * (10 + 3 * Math.sqrt(Math.max.apply(null, wk.ids.map(id => nach.get(id))))))
+    });
+  };
+  // Hauptstamm = Wurzel mit den meisten Nachkommen; danach alle übrigen Wurzeln, zuletzt Reste (z. B. Zyklen).
+  const nachGroesse = (a, b) => nach.get(b.id) - nach.get(a.id);
+  P.filter(p => !hatEltern.has(p.id)).sort(nachGroesse).forEach(p => { if (!belegt.has(p.id)) setzeBaum(p.id); });
+  P.slice().sort(nachGroesse).forEach(p => { if (!belegt.has(p.id)) setzeBaum(p.id); });
+  // Senkrecht mittig ausrichten (Stammfuß bis oberste Ebene)
+  let y0 = Infinity, y1 = -Infinity;
+  p3.forEach(v => { y0 = Math.min(y0, v.Y); y1 = Math.max(y1, v.Y); });
+  staemme.forEach(s => { y1 = Math.max(y1, s.Y + s.lang); });
+  const ym = p3.size ? (y0 + y1) / 2 : 0;
+  p3.forEach(v => { v.Y -= ym; });
+  staemme.forEach(s => { s.Y -= ym; });
+  for (const p of daten.personen) {
+    const voll = kugelText(p, false), name = kugelText(p, true);
+    const r = Math.max(voll.R, 30);
+    t3.set(p.id, { voll: voll.z, name: name.z, R: r, fName: Math.min(r / name.R, 1.8) });
+  }
+}
+function proj(v, w, h) {
+  const cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw), cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
+  const o = p3.get(zielId) || NULLPUNKT, X = v.X - o.X, Y = v.Y - o.Y, Z = v.Z - o.Z;
+  const x1 = X * cy + Z * sy, z1 = -X * sy + Z * cy;
+  const y2 = Y * cp - z1 * sp, z2 = Y * sp + z1 * cp;
+  const d = z2 + cam.dist, s = FOK / Math.max(d, 1);
+  return { x: w / 2 + x1 * s, y: h / 2 + y2 * s, s: s, d: d };
+}
+// Welcher Text passt bei Maßstab s in eine Kugel? 2 = alles (Daten ab ca. 9 px Schrift),
+// 1 = nur der Name (füllt die Kugel, ab ca. 7 px Schrift), 0 = nichts.
+const textStufe = (T, s) => 11 * s >= 8.6 ? 2 : (15 * s * T.fName >= 7 ? 1 : 0);
+// Wie gut ist die aktuelle Kamera lesbar? "namen" = Kugeln im Bild, deren Name (weitgehend) frei vor den vorderen Kugeln steht;
+// "wert" gewichtet, wie frei die Namen stehen, und bewertet die Datumstexte an Verbindungen
+// (gut: frei zwischen den Partnern; schlecht: über einer Kugel). Damit wählt "Einpassen" Blickrichtung und Startansicht.
+function lesbar3d(w, h) {
+  const l = [], k = new Map();
+  p3.forEach((v, id) => { const q = proj(v, w, h), T = t3.get(id), o = { x: q.x, y: q.y, d: q.d, r: T.R * q.s, st: textStufe(T, q.s) }; k.set(id, o); if (q.d > 20) l.push(o); });
+  const imBild = (x, y) => x > 0 && x < w && y > 0 && y < h;
+  // frei = im Bild und keine vordere Kugel liegt über dem Punkt
+  const frei = (x, y, d) => imBild(x, y) && !l.some(o => o.d < d - 1 && Math.hypot(o.x - x, o.y - y) < o.r);
+  let n = 0, namen = 0;
+  for (const o of l) {
+    if (!o.st || !imBild(o.x, o.y)) continue;
+    // Anteil des Textbereichs (ca. 0,55 Radien um die Mitte), den die vorderen Kugeln frei lassen
+    let anteil = 1;
+    for (const v of l) if (v.d < o.d - 1) anteil = Math.min(anteil, (Math.hypot(v.x - o.x, v.y - o.y) - v.r) / (o.r * 0.55));
+    anteil = grenze(anteil, 0, 1);
+    if (anteil >= 0.6) namen++;
+    n += anteil * 6;
+  }
+  for (const f of L.F) {
+    if (f.pa.length < 2 || !eheText(f.e)) continue;
+    const a = p3.get(f.pa[0]), b = p3.get(f.pa[1]), m = proj({ X: (a.X + b.X) / 2, Y: (a.Y + b.Y) / 2, Z: (a.Z + b.Z) / 2 }, w, h);
+    if (m.d <= 20 || 11 * m.s < 7.5) continue;
+    // Datum zählt, wenn es frei zwischen den beiden Partnern steht; liegt es über einer der beiden Kugeln, stört es.
+    const ka = k.get(f.pa[0]), kb = k.get(f.pa[1]);
+    n += Math.hypot(ka.x - kb.x, ka.y - kb.y) >= (ka.r + kb.r) * 0.95 && frei(m.x, m.y - 15 * m.s, m.d) ? 2 : -1;
+  }
+  return { namen: namen, wert: namen * 100 + n }; // zuerst zählt die Zahl lesbarer Namen
+}
+function zeichne3d() {
+  const w = cv.clientWidth, h = cv.clientHeight, dpr = window.devicePixelRatio || 1;
+  if (!w || !h) return;
+  if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+  }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const bg = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) * 0.7);
+  bg.addColorStop(0, '#1a2550'); bg.addColorStop(1, '#070a16');
+  ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+
+  const pr = new Map();
+  let dmin = Infinity, dmax = -Infinity;
+  p3.forEach((v, id) => { const q = proj(v, w, h); pr.set(id, q); dmin = Math.min(dmin, q.d); dmax = Math.max(dmax, q.d); });
+  const blass = d => 1 - 0.6 * (d - dmin) / ((dmax - dmin) || 1);
+  const linie = (a, b, farbe, dick, hoechstens) => {
+    if (a.d < 20 || b.d < 20) return;
+    if (Math.max(a.x, b.x) < 0 || Math.min(a.x, b.x) > w || Math.max(a.y, b.y) < 0 || Math.min(a.y, b.y) > h) return;
+    ctx.globalAlpha = grenze(blass((a.d + b.d) / 2), 0.25, 1) * 0.9;
+    ctx.strokeStyle = farbe;
+    ctx.lineWidth = grenze(dick * (a.s + b.s) / 2, 1, hoechstens || 1000);
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+  };
+  ctx.lineCap = 'round';
+  // Äste nie breiter als ca. 14 px (auf kleinen Bildschirmen weniger), damit sie nahe Ansichten nicht zudecken.
+  const astMax = grenze(Math.min(w, h) / 45, 6, 14);
+  // Stämme unter den Wurzeln, dann die Äste (Eltern–Kind): holzfarben, zum Stamm hin dicker.
+  for (const s of staemme) linie(proj({ X: s.X, Y: s.Y + s.lang, Z: s.Z }, w, h), proj(s, w, h), '#8a5a2b', s.dick, astMax);
+  const zeichen = []; // Symbole und Datumstexte der Verbindungen: werden unten nach Tiefe zwischen die Kugeln einsortiert
+  for (const f of L.F) {
+    const va = p3.get(f.pa[0]), vb = p3.get(f.pa[1]) || va;
+    const m = proj({ X: (va.X + vb.X) / 2, Y: (va.Y + vb.Y) / 2, Z: (va.Z + vb.Z) / 2 }, w, h);
+    f.ki.forEach(id => linie(m, pr.get(id), '#a9743f', dicke3.get(id), astMax));
+    if (vb !== va) {
+      // wie in 2D: Ehe = Linie mit Ringen, Partnerschaft = gestrichelt ohne Ringe, beendet = Schrägstrich
+      if (f.e.art === 'partnerschaft') ctx.setLineDash([Math.max(3, 7 * m.s), Math.max(3, 6 * m.s)]);
+      linie(pr.get(f.pa[0]), pr.get(f.pa[1]), '#ffc857', 2.5);
+      ctx.setLineDash([]);
+      if (m.d > 20 && 5 * m.s >= 1.5 && m.x > -60 && m.x < w + 60 && m.y > -60 && m.y < h + 60) zeichen.push({ q: m, f: f });
+    }
+  }
+  const zeichneZeichen = (m, f) => {
+    const rr = 5 * m.s, part = f.e.art === 'partnerschaft', text = eheText(f.e);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = '#ffc857'; ctx.lineWidth = Math.max(1, 1.5 * m.s); ctx.fillStyle = '#131b3c';
+    if (!part) [-0.7, 0.7].forEach(dx => { ctx.beginPath(); ctx.arc(m.x + dx * rr, m.y, rr, 0, 6.2832); ctx.fill(); ctx.stroke(); });
+    if (f.e.endedatum) {
+      ctx.strokeStyle = '#ff8a65'; ctx.lineWidth = Math.max(1.5, 2.5 * m.s);
+      ctx.beginPath(); ctx.moveTo(m.x - rr * 1.2, m.y + rr * 1.8); ctx.lineTo(m.x + rr * 1.2, m.y - rr * 1.8); ctx.stroke();
+    }
+    if (text && 11 * m.s >= 7.5) {
+      ctx.font = 11 * m.s + SCHRIFT; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+      ctx.fillStyle = '#ffd98a';
+      ctx.fillText(text, m.x, m.y - rr * 1.8 - 3);
+    }
+  };
+
+  // Kugeln und Verbindungs-Zeichen gemeinsam von hinten nach vorn: Vorderes liegt vorn, Kugeln sind deckend.
+  treffer = [];
+  const liste = daten.personen.map(p => ({ p: p, q: pr.get(p.id) })).filter(o => o.q.d > 20).concat(zeichen).sort((a, b) => b.q.d - a.q.d);
+  for (const o of liste) {
+    if (o.f) { zeichneZeichen(o.q, o.f); continue; }
+    const p = o.p, q = o.q, T = t3.get(p.id), r = T.R * q.s, tot = istTot(p), stufe = textStufe(T, q.s);
+    const hell = tot ? '#e3e6ea' : '#b5e4ff', dunkel = tot ? '#8d949e' : '#3d93dc';
+    treffer.push({ id: p.id, x: q.x, y: q.y, r: r, d: q.d, st: stufe });
+    if (q.x + r * 1.2 < 0 || q.x - r * 1.2 > w || q.y + r * 1.2 < 0 || q.y - r * 1.2 > h) continue; // außerhalb des Bildes
+    // Leuchten als blasser Ring (günstiger als ein Weichzeichner-Schatten)
+    ctx.globalAlpha = 0.16; ctx.fillStyle = hell;
+    ctx.beginPath(); ctx.arc(q.x, q.y, r * 1.14, 0, 6.2832); ctx.fill();
+    ctx.globalAlpha = 1;
+    const g = ctx.createRadialGradient(q.x - r * 0.35, q.y - r * 0.4, r * 0.08, q.x, q.y, r);
+    g.addColorStop(0, '#ffffff'); g.addColorStop(0.35, hell); g.addColorStop(1, dunkel);
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(q.x, q.y, r, 0, 6.2832); ctx.fill();
+    ctx.globalAlpha = (1 - blass(q.d)) * 0.6; // weiter hinten = blasser (abgedunkelt statt durchsichtig)
+    ctx.fillStyle = '#0b1020';
+    ctx.beginPath(); ctx.arc(q.x, q.y, r, 0, 6.2832); ctx.fill();
+    ctx.globalAlpha = 1;
+    if (p.id === auswahl) {
+      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(q.x, q.y, r + 5, 0, 6.2832); ctx.stroke();
+    }
+    // Text in der Kugel: alles, wenn lesbar (ca. 9 px); sonst nur der Name (ab ca. 7 px); sonst nichts.
+    const zeilen = stufe === 2 ? T.voll : stufe === 1 ? T.name : null, f = stufe === 1 ? q.s * T.fName : q.s;
+    if (zeilen) {
+      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = tot ? '#3a3f47' : '#04213d';
+      for (const l of zeilen) {
+        let x = q.x - l.b * f / 2;
+        for (const teil of l.teile) { ctx.font = schriftVon(teil, f); ctx.fillText(teil.t, x, q.y + l.y * f); x += teil.b * f; }
+      }
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
+/* ---------- Gemeinsames Zeichnen / Ansicht ---------- */
+let neuDialog = false; // "+ Person": Formular für eine einzelne Person ist offen
+function zeigeStart() {
+  const leer = !daten.personen.length;
+  $('#start').hidden = !(leer || neuDialog);
+  $('#startTitel').textContent = leer ? 'Grundperson anlegen' : 'Person ohne Verbindung anlegen';
+  $('#startAbbr').hidden = leer;
+}
+function zeichne() {
+  L = layout();
+  zeigeStart();
+  if (modus3d) { baue3d(); zeichne3d(); } else zeichne2d();
+}
+// Schiebt die Karten der genannten Personen in den sichtbaren Bereich (Panel verkleinert die Fläche).
+function zeige(ids) {
+  if (modus3d) return;
+  const qs = ids.map(id => L.pos.get(id)).filter(Boolean);
+  if (!qs.length) return;
+  const w = fl.clientWidth, h = fl.clientHeight, rand = 12;
+  if (sk < LESBAR) zoomAn(tx + (qs[0].x + KW / 2) * sk, ty + (qs[0].y + KH / 2) * sk, LESBAR / sk);
+  const box = l => ({
+    x0: Math.min.apply(null, l.map(q => q.x)), x1: Math.max.apply(null, l.map(q => q.x)) + KW,
+    y0: Math.min.apply(null, l.map(q => q.y)), y1: Math.max.apply(null, l.map(q => q.y)) + KH
+  });
+  let b = box(qs);
+  if ((b.x1 - b.x0) * sk > w - 2 * rand || (b.y1 - b.y0) * sk > h - 2 * rand) b = box([qs[0]]);
+  const schub = (a0, a1, t, gr) => {
+    if ((a1 - a0) * sk > gr - 2 * rand) return gr / 2 - (a0 + a1) / 2 * sk; // passt nicht: mittig
+    if (t + a0 * sk < rand) return rand - a0 * sk;
+    if (t + a1 * sk > gr - rand) return gr - rand - a1 * sk;
+    return t;
+  };
+  tx = schub(b.x0, b.x1, tx, w);
+  ty = schub(b.y0, b.y1 + 54 / sk, ty, h); // unten Platz für die Zoom-Buttons lassen
+  anwenden();
+}
+// ganz = true (Button "Einpassen"): ganzer Baum. Sonst lesbare Mindestgröße, notfalls auf eine Person zentriert.
+function einpassen(ganz) {
+  const w = fl.clientWidth, h = fl.clientHeight;
+  if (modus3d) {
+    zielId = null;
+    // Gesamtansicht für eine Blickrichtung: von der Seite, leicht von oben; Abstand schrittweise so wählen,
+    // dass alle Kugeln samt ihrem Radius und der Stamm ins Bild passen.
+    const randY = 14 + $('#legende').offsetHeight; // oben Platz für die Legende lassen
+    const gesamt = (yaw, neigung) => {
+      cam.yaw = yaw; cam.pitch = neigung; cam.dist = 12000;
+      for (let r = 0; r < 12; r++) {
+        let k = 0;
+        const pruefe = (v, R) => {
+          const q = proj(v, w, h), kr = R * q.s;
+          k = Math.max(k, (Math.abs(q.x - w / 2) + kr) / Math.max(w / 2 - 8, 20), (Math.abs(q.y - h / 2) + kr) / Math.max(h / 2 - randY, 20));
+        };
+        p3.forEach((v, id) => pruefe(v, t3.get(id).R));
+        staemme.forEach(s => pruefe({ X: s.X, Y: s.Y + s.lang, Z: s.Z }, s.dick));
+        cam.dist = grenze(cam.dist * k, FOK * 0.7, DISTMAX);
+      }
+      return lesbar3d(w, h);
+    };
+    // Blickrichtung und Neigung nehmen, bei denen am meisten lesbar ist (bei sehr großen Bäumen nur die Standardrichtung).
+    // Die flachere Neigung hilft auf niedrigen Bildschirmen (Handy quer).
+    const richtungen = p3.size <= 150 ? 24 : p3.size <= 600 ? 12 : 1;
+    let yaw = startYaw, neigung = 0.33, bester = -Infinity;
+    for (const ng of richtungen > 1 ? [0.33, 0.16] : [0.33]) {
+      for (let i = 0; i < richtungen; i++) {
+        const y = startYaw + i * 2 * Math.PI / richtungen, n = gesamt(y, ng).wert;
+        if (n > bester + 0.01) { bester = n; yaw = y; neigung = ng; }
+      }
+    }
+    const lesbar = gesamt(yaw, neigung).namen;
+    // Startansicht (nicht der Button "Einpassen"): Sind in der Gesamtansicht weniger als die Hälfte der Namen lesbar,
+    // halbnah an Auswahl bzw. Grundperson gehen – aber nur, wenn dort genug Namen ins Bild kommen (großer Bildschirm).
+    const zid = p3.has(auswahl) ? auswahl : (daten.personen[0] || {}).id;
+    if (!ganz && lesbar < p3.size / 2 && p3.has(zid)) {
+      const abstand = cam.dist;
+      zielId = zid; cam.dist = FOK / 0.45; cam.pitch = 0.55; cam.yaw = p3.get(zid).t + 0.25;
+      if (lesbar3d(w, h).namen < 8) { zielId = null; cam.dist = abstand; cam.pitch = neigung; cam.yaw = yaw; }
+    }
+    zeichne3d();
+    return;
+  }
+  const bw = L.breite + KW, bh = L.maxG * ZH + KH;
+  const pass = Math.min(w / (bw + 40), h / (bh + 80));
+  sk = grenze(pass, ganz ? 0.002 : LESBAR, 1.2);
+  tx = (w - bw * sk) / 2;
+  ty = (h - bh * sk) / 2;
+  const q = L.pos.get(auswahl) || L.pos.get((daten.personen[0] || {}).id);
+  if (sk > pass && q) { // Baum passt nicht lesbar hinein: auf Auswahl bzw. Grundperson zentrieren
+    if (bw * sk > w - 24) tx = w / 2 - (q.x + KW / 2) * sk;
+    if (bh * sk > h - 24) ty = h / 2 - (q.y + KH / 2) * sk;
+  }
+  anwenden();
+}
+function zoomKnopf(f) {
+  if (modus3d) { cam.dist = grenze(cam.dist / f, FOK * 0.2, DISTMAX); zeichne3d(); }
+  else zoomAn(fl.clientWidth / 2, fl.clientHeight / 2, f);
+}
+function setzeModus(d3) {
+  modus3d = d3;
+  buehne.classList.toggle('d3', d3);
+  $('#b2d').setAttribute('aria-pressed', String(!d3));
+  $('#b3d').setAttribute('aria-pressed', String(d3));
+  zeichne();
+  einpassen();
+}
+function waehle(id) {
+  auswahl = id;
+  ansicht = 'person';
+  if (modus3d && zielId && id) zielId = id; // Nahansicht in 3D folgt der Auswahl
+  zeigePanel();
+  zeichne();
+  if (id) zeige([id]);
+}
+
+/* ---------- Zeiger: Verschieben / Drehen / Zoomen ---------- */
+const zeiger = new Map();
+let gezogen = false, startP = null;
+fl.addEventListener('pointerdown', e => {
+  zeiger.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (zeiger.size === 1) { gezogen = false; startP = { x: e.clientX, y: e.clientY }; }
+});
+window.addEventListener('pointermove', e => {
+  const z = zeiger.get(e.pointerId);
+  if (!z) return;
+  if (zeiger.size === 1) {
+    if (!gezogen && Math.hypot(e.clientX - startP.x, e.clientY - startP.y) < 6) return;
+    gezogen = true;
+    const dx = e.clientX - z.x, dy = e.clientY - z.y;
+    if (modus3d) {
+      cam.yaw += dx * 0.008;
+      cam.pitch = grenze(cam.pitch + dy * 0.006, -0.3, 1.2); // nur in Grenzen kippen: der Baum bleibt aufrecht
+      zeichne3d();
+    } else { tx += dx; ty += dy; anwenden(); }
+    z.x = e.clientX; z.y = e.clientY;
+  } else if (zeiger.size === 2) {
+    gezogen = true;
+    const mess = () => {
+      const a = Array.from(zeiger.values());
+      return { d: Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) || 1, x: (a[0].x + a[1].x) / 2, y: (a[0].y + a[1].y) / 2 };
+    };
+    const vor = mess();
+    z.x = e.clientX; z.y = e.clientY;
+    const nach = mess(), f = nach.d / vor.d;
+    if (modus3d) { cam.dist = grenze(cam.dist / f, FOK * 0.2, DISTMAX); zeichne3d(); }
+    else {
+      const r = fl.getBoundingClientRect();
+      tx += nach.x - vor.x; ty += nach.y - vor.y;
+      zoomAn(nach.x - r.left, nach.y - r.top, f);
+    }
+  }
+});
+function zeigerEnde(e) {
+  if (!zeiger.has(e.pointerId)) return;
+  zeiger.delete(e.pointerId);
+  if (!zeiger.size) setTimeout(() => { gezogen = false; }, 0);
+}
+// 3D: Kugel erst beim "click" wählen (wie die 2D-Karten). So gibt es keinen Folge-Klick,
+// der auf Touch-Geräten im gerade geöffneten Panel landet.
+cv.addEventListener('click', e => {
+  if (gezogen || !modus3d) return;
+  const r = fl.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  // Liegt der Punkt in einer oder mehreren Kugeln, gewinnt die vorderste: "treffer" ist von hinten
+  // nach vorn sortiert, also die letzte passende. Sonst die nächste kleine Kugel im Fangradius (Finger).
+  let best = null, bestA = 22;
+  for (const t of treffer) if (Math.hypot(x - t.x, y - t.y) <= t.r) best = t;
+  if (!best) for (const t of treffer) {
+    const a = Math.hypot(x - t.x, y - t.y);
+    if (a <= bestA) { best = t; bestA = a; }
+  }
+  if (best) waehle(best.id);
+});
+window.addEventListener('pointerup', zeigerEnde);
+window.addEventListener('pointercancel', zeigerEnde);
+fl.addEventListener('wheel', e => {
+  e.preventDefault();
+  const f = Math.exp(-e.deltaY * (e.deltaMode ? 0.05 : 0.0015));
+  if (modus3d) { cam.dist = grenze(cam.dist / f, FOK * 0.2, DISTMAX); zeichne3d(); }
+  else { const r = fl.getBoundingClientRect(); zoomAn(e.clientX - r.left, e.clientY - r.top, f); }
+}, { passive: false });
+welt.addEventListener('click', e => {
+  const k = e.target.closest('.karte');
+  if (k && !gezogen) waehle(k.dataset.id);
+});
+if (window.ResizeObserver) new ResizeObserver(() => { if (modus3d) zeichne3d(); }).observe(fl);
+
+/* ---------- Panel ---------- */
+function pLink(p) {
+  return '<button type="button" class="link" data-p="' + esc(p.id) + '">' + esc(nameVon(p)) + '</button>';
+}
+function optionVon(p) {
+  return '<option value="' + esc(p.id) + '">' + esc(nameVon(p)) + (p.geburtsdatum ? ' (* ' + esc(p.geburtsdatum.slice(0, 4)) + ')' : '') + '</option>';
+}
+// Hinweis unter einer leeren Auswahlliste "bestehende Person"
+const keinePerson = () => '<p class="leer">' + (daten.personen.length > 1
+  ? 'Keine passende Person – bei den anderen würden die Generationen nicht zusammenpassen, oder sie sind schon verbunden.'
+  : 'Noch keine weitere Person vorhanden.') + '</p>';
+let panelStand = ''; // welche Person und Ansicht das Panel zuletzt zeigte (für die Scrollposition)
+function zeigePanel() {
+  const p = person(auswahl);
+  if (!p) { panel.hidden = true; panelStand = ''; return; }
+  panel.hidden = false;
+  // Wird dieselbe Ansicht nur neu aufgebaut, bleibt die Scrollposition erhalten.
+  const stand = auswahl + '|' + ansicht, oben = stand === panelStand ? panel.scrollTop : 0;
+  panelStand = stand;
+  const es = daten.ehen.filter(e => e.partner.indexOf(p.id) >= 0);
+  const partnerVon = e => person(e.partner.find(x => x !== p.id));
+  let h;
+  if (ansicht === 'person') {
+    h = '<div class="pkopf"><h2 id="pName">' + esc(nameVon(p)) + '</h2><button type="button" id="pZu" aria-label="Schließen">×</button></div>' +
+      '<div id="pFelder">' + felderHtml(p) + '</div>' +
+      '<div class="reihe"><button type="button" id="bHeirat">' + RINGE + ' Partner</button><button type="button" id="bKind">Kind</button><button type="button" id="bEltern">Eltern</button></div>' +
+      '<h3>Partner und Kinder</h3>';
+    h += es.length ? es.map(e => {
+      const q = partnerVon(e);
+      const kinder = e.kinder.map(person).filter(Boolean).map(k => '<span class="kind">' + pLink(k) +
+        '<button type="button" class="lz" data-lk="' + esc(k.id) + '" data-von="' + esc(e.id) + '" aria-label="Kind-Verbindung zu ' + esc(nameVon(k)) + ' lösen" title="Kind-Verbindung lösen">×</button></span>').join('');
+      const part = e.art === 'partnerschaft';
+      return '<div class="ehe"><div class="ekopf"><span>' + (q ? (part ? '' : RINGE + ' ') + pLink(q) : 'Ohne zweiten Elternteil') + '</span>' +
+        (q ? '<button type="button" class="lz" data-le="' + esc(e.id) + '" aria-label="Verbindung mit ' + esc(nameVon(q)) + ' lösen" title="Verbindung lösen">×</button>' : '') + '</div>' +
+        (q ? '<label>Art<select data-eart="' + esc(e.id) + '"><option value="ehe">Ehe</option><option value="partnerschaft"' + (part ? ' selected' : '') + '>Partnerschaft</option></select></label>' +
+          '<label>' + (part ? 'Zusammen seit' : 'Heirat am') + '<input type="date" data-ehe="' + esc(e.id) + '" value="' + esc(e.heiratsdatum) + '"></label>' +
+          '<label>' + (part ? 'Trennung am' : 'Scheidung am') + '<input type="date" data-ende="' + esc(e.id) + '" value="' + esc(e.endedatum) + '"></label>' : '') +
+        '<div>Kinder: ' + (kinder || '–') + '</div></div>';
+    }).join('') : '<p class="leer">Noch keine Partner und keine Kinder eingetragen.</p>';
+    h += '<button type="button" id="bLoeschen" class="gefahr">Person löschen</button>';
+  } else if (ansicht === 'eltern') {
+    const pe = daten.ehen.find(e => e.kinder.indexOf(p.id) >= 0);
+    const platz = '<option value="">– bitte wählen –</option>';
+    const datumFeld = text => '<label>' + text + '<input type="date" id="eDatum"></label>';
+    const knoepfe = '<div class="reihe"><button type="button" id="eOk" class="primaer">Eltern zuordnen</button><button type="button" id="nAbbr">Abbrechen</button></div>';
+    h = '<div class="pkopf"><h2>Eltern von ' + esc(nameVon(p)) + '</h2></div>';
+    if (pe && pe.partner.length > 1) {
+      h += '<p>' + esc(nameVon(p)) + ' hat bereits Eltern – zum Ändern erst über × lösen (im Panel eines Elternteils, bei „Kinder“):</p>' +
+        '<p>' + pe.partner.map(person).filter(Boolean).map(pLink).join('') + '</p>' +
+        '<div class="reihe"><button type="button" id="nAbbr">Zurück</button></div>';
+    } else if (pe) {
+      // Ein Elternteil ist da: den zweiten ergänzen.
+      const kand = daten.personen.filter(q => q.id !== p.id && q.id !== pe.partner[0] && erlaubt(l => opZweiter(l, p.id, pe.id, q.id))).sort(nachName);
+      // Hat der eine Elternteil mehrere Kinder ohne zweiten Elternteil: fragen, für wen der zweite gelten soll.
+      const geschw = pe.kinder.map(person).filter(Boolean);
+      h += '<p>Bisher eingetragen: ' + pLink(person(pe.partner[0])) + '</p><h3>Zweiten Elternteil ergänzen</h3>' +
+        (geschw.length > 1 ? '<div class="wahl"><label><input type="radio" name="egelt" value="nur" checked> Nur für ' + esc(nameVon(p)) + '</label>' +
+          '<label><input type="radio" name="egelt" value="alle"> Für alle Kinder von ' + esc(nameVon(person(pe.partner[0]))) + ' ohne zweiten Elternteil (' + esc(geschw.map(nameVon).join(', ')) + ')</label></div>' : '') +
+        '<div class="wahl"><label><input type="radio" name="art" value="neu" checked> Neue Person anlegen</label>' +
+        '<label><input type="radio" name="art" value="best"' + (kand.length ? '' : ' disabled') + '> Bestehende Person wählen</label></div>' +
+        (kand.length ? '' : keinePerson()) +
+        '<div id="fNeu">' + felderHtml({ nachname: p.nachname }) + '</div>' +
+        '<div id="fBest" hidden><label>Person<select id="nBest">' + platz + kand.map(optionVon).join('') + '</select></label></div>' +
+        datumFeld('Heiratsdatum der Eltern (optional)') + knoepfe;
+    } else {
+      const kandP = daten.personen.filter(q => q.id !== p.id && erlaubt(l => opKind(l, p.id, '', [q.id]))).sort(nachName);
+      const eheName = e => e.partner.length > 1 ? e.partner.map(x => nameVon(person(x))).join(' und ') : 'Nur ' + nameVon(person(e.partner[0]));
+      const kandE = daten.ehen.filter(e => e.partner.indexOf(p.id) < 0 && e.partner.every(person) && erlaubt(l => opKind(l, p.id, e.id)))
+        .map(e => ({ id: e.id, name: eheName(e) })).sort((a, b) => a.name.localeCompare(b.name, 'de'));
+      const elternteil = (titel, kz) => '<h3>' + titel + '</h3><label>Vorname<input type="text" id="e' + kz + 'vn"></label>' +
+        '<label>Nachname<input type="text" id="e' + kz + 'nn" value="' + esc(p.nachname) + '"></label>' +
+        '<div class="wahl"><label><input type="checkbox" id="e' + kz + 'tot"> verstorben, Datum unbekannt</label></div>';
+      h += '<div class="wahl"><label><input type="radio" name="eart" value="neu" checked> Neue Eltern anlegen</label>' +
+        '<label><input type="radio" name="eart" value="ehe"' + (kandE.length ? '' : ' disabled') + '> Bestehende Verbindung wählen</label>' +
+        '<label><input type="radio" name="eart" value="pers"' + (kandP.length ? '' : ' disabled') + '> Bestehende Person(en) wählen</label></div>' +
+        (kandP.length ? '' : keinePerson()) +
+        '<div id="eNeu"><p class="leer">Ein Elternteil reicht – ein leerer Vorname wird nicht angelegt. Weitere Angaben lassen sich danach eintragen.</p>' +
+        elternteil('Vater', 'V') + elternteil('Mutter', 'M') + '</div>' +
+        '<div id="eEhe" hidden><label>Verbindung<select id="eEheWahl">' + platz +
+        kandE.map(e => '<option value="' + esc(e.id) + '">' + esc(e.name) + '</option>').join('') + '</select></label></div>' +
+        '<div id="ePers" hidden><label>Erster Elternteil<select id="eP1">' + platz + kandP.map(optionVon).join('') + '</select></label>' +
+        '<label>Zweiter Elternteil (optional)<select id="eP2">' + platz + kandP.map(optionVon).join('') + '</select></label></div>' +
+        '<div id="eDat">' + datumFeld('Heiratsdatum der Eltern (optional, nur für eine neue Ehe)') + '</div>' + knoepfe;
+    }
+  } else {
+    const heirat = ansicht === 'heirat';
+    const partnerIds = es.map(e => e.partner.find(x => x !== p.id));
+    // Nicht wählbar: die Person selbst, ihre Partner und alle, bei denen die gemeinsame Prüfung sicher scheitert.
+    const ziele = es.filter(e => partnerVon(e)).map(e => e.id).concat(['']);
+    const kand = daten.personen.filter(q => q.id !== p.id && partnerIds.indexOf(q.id) < 0 && (heirat
+      ? erlaubt(l => opHeirat(l, p.id, q.id))
+      : ziele.some(w => erlaubt(l => opKind(l, q.id, w, [p.id]))))).sort(nachName);
+    h = '<div class="pkopf"><h2>' + (heirat ? 'Partner von ' : 'Kind von ') + esc(nameVon(p)) + '</h2></div>' +
+      '<div class="wahl"><label><input type="radio" name="art" value="neu" checked> Neue Person anlegen</label>' +
+      '<label><input type="radio" name="art" value="best"' + (kand.length ? '' : ' disabled') + '> Bestehende Person wählen</label></div>' +
+      (kand.length ? '' : keinePerson()) +
+      '<div id="fNeu">' + felderHtml({}) + '</div>' +
+      '<div id="fBest" hidden><label>Person<select id="nBest"><option value="">– bitte wählen –</option>' + kand.map(optionVon).join('') + '</select></label></div>';
+    if (heirat) h += '<label>Art<select id="nArt"><option value="ehe">Ehe</option><option value="partnerschaft">Partnerschaft</option></select></label>' +
+      '<label><span id="nDatumL">Heirat am</span><input type="date" id="nDatum"></label>' +
+      '<label><span id="nEndeL">Scheidung am</span> (optional)<input type="date" id="nEnde"></label>';
+    else {
+      const mitPartner = es.filter(e => partnerVon(e));
+      h += '<label>Eltern<select id="nEhe">' +
+        mitPartner.map(e => '<option value="' + esc(e.id) + '">' + esc(nameVon(p) + ' und ' + nameVon(partnerVon(e))) + '</option>').join('') +
+        '<option value="">Nur ' + esc(nameVon(p)) + ' (nur dieser Elternteil)</option></select></label>';
+    }
+    h += '<div class="reihe"><button type="button" id="nOk" class="primaer">' + (heirat ? 'Verbinden' : 'Kind hinzufügen') +
+      '</button><button type="button" id="nAbbr">Abbrechen</button></div>';
+  }
+  panel.innerHTML = h;
+  panel.scrollTop = oben;
+}
+function uebernehmen() {
+  const p = person(auswahl);
+  let neu = null, id, op;
+  if (panel.querySelector('input[name=art]:checked').value === 'neu') {
+    neu = lesePerson($('#fNeu'));
+    if (!neu) return;
+    id = neu.id;
+  } else {
+    id = $('#nBest').value;
+    if (!id || !person(id)) { alert('Bitte zuerst eine Person auswählen.'); return; }
+  }
+  if (ansicht === 'heirat') {
+    const datum = $('#nDatum').value, art = $('#nArt').value, ende = $('#nEnde').value;
+    op = l => opHeirat(l, p.id, id, datum, art, ende);
+  } else {
+    const wahl = $('#nEhe').value;
+    op = l => opKind(l, id, wahl, [p.id]);
+  }
+  if (!ausfuehren(op)) return;
+  if (neu) daten.personen.push(neu);
+  geaendert();
+  waehle(p.id);
+  zeige([id, p.id]);
+}
+function elternUebernehmen() {
+  const p = person(auswahl), pe = daten.ehen.find(e => e.kinder.indexOf(p.id) >= 0);
+  const datum = $('#eDatum').value, neue = [];
+  let op;
+  if (pe) {
+    let id;
+    if (panel.querySelector('input[name=art]:checked').value === 'neu') {
+      const n = lesePerson($('#fNeu'));
+      if (!n) return;
+      neue.push(n);
+      id = n.id;
+    } else {
+      id = $('#nBest').value;
+      if (!id || !person(id)) { alert('Bitte zuerst eine Person auswählen.'); return; }
+    }
+    const alle = !!panel.querySelector('input[name=egelt][value=alle]:checked');
+    op = l => opZweiter(l, p.id, pe.id, id, datum, alle);
+  } else {
+    const art = panel.querySelector('input[name=eart]:checked').value;
+    if (art === 'neu') {
+      ['V', 'M'].forEach(kz => {
+        const vn = $('#e' + kz + 'vn').value.trim();
+        if (vn) neue.push({ id: neueId('p'), vorname: vn, zweitname: '', nachname: $('#e' + kz + 'nn').value.trim(), geburtsdatum: '', sterbedatum: '', sterbedatumUnbekannt: $('#e' + kz + 'tot').checked, adresse: '', notiz: '' });
+      });
+      if (!neue.length) { alert('Bitte für mindestens einen Elternteil einen Vornamen eingeben.'); return; }
+      const ids = neue.map(n => n.id);
+      op = l => opKind(l, p.id, '', ids, datum);
+    } else if (art === 'ehe') {
+      const wahl = $('#eEheWahl').value;
+      if (!wahl) { alert('Bitte zuerst eine Verbindung auswählen.'); return; }
+      op = l => opKind(l, p.id, wahl);
+    } else {
+      const ids = [$('#eP1').value, $('#eP2').value].filter(Boolean);
+      if (!ids.length) { alert('Bitte zuerst eine Person auswählen.'); return; }
+      if (ids[0] === ids[1]) { alert('Bitte zwei verschiedene Personen wählen.'); return; }
+      op = l => opKind(l, p.id, '', ids, datum);
+    }
+  }
+  if (!ausfuehren(op)) return;
+  neue.forEach(n => daten.personen.push(n));
+  geaendert();
+  waehle(p.id);
+  zeige(daten.ehen.find(e => e.kinder.indexOf(p.id) >= 0).partner.concat([p.id]));
+}
+function loeseEhe(eid) {
+  const e = daten.ehen.find(x => x.id === eid);
+  if (!e) return;
+  const frage = (e.art === 'partnerschaft' ? 'Partnerschaft' : 'Ehe') + ' zwischen ' + e.partner.map(person).filter(Boolean).map(nameVon).join(' und ') + ' wirklich lösen?' +
+    (e.kinder.length ? ' Auch die Zuordnung der Kinder dieser Verbindung (' + e.kinder.length + ') wird entfernt.' : '') + ' Die Personen bleiben erhalten.';
+  if (!confirm(frage)) return;
+  daten.ehen = daten.ehen.filter(x => x !== e);
+  geaendert();
+  waehle(auswahl);
+}
+function loeseKind(eid, kid) {
+  const e = daten.ehen.find(x => x.id === eid), k = person(kid);
+  if (!e || !k) return;
+  if (!confirm('Kind-Verbindung zu ' + nameVon(k) + ' wirklich lösen? Die Person bleibt erhalten.')) return;
+  e.kinder = e.kinder.filter(x => x !== kid);
+  aufraeumen();
+  geaendert();
+  waehle(auswahl);
+}
+function loesche() {
+  const p = person(auswahl);
+  if (!confirm('„' + nameVon(p) + '“ wirklich löschen? Ehen und Kind-Verbindungen dieser Person werden mit entfernt.')) return;
+  daten.personen = daten.personen.filter(q => q.id !== p.id);
+  daten.ehen.forEach(e => {
+    e.partner = e.partner.filter(x => x !== p.id);
+    e.kinder = e.kinder.filter(x => x !== p.id);
+  });
+  aufraeumen();
+  geaendert();
+  waehle(null);
+}
+panel.addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.dataset.p) waehle(b.dataset.p);
+  else if (b.dataset.le) loeseEhe(b.dataset.le);
+  else if (b.dataset.lk) loeseKind(b.dataset.von, b.dataset.lk);
+  else if (b.id === 'pZu') waehle(null);
+  else if (b.id === 'bHeirat' || b.id === 'bKind' || b.id === 'bEltern') { ansicht = { bHeirat: 'heirat', bKind: 'kind', bEltern: 'eltern' }[b.id]; zeigePanel(); }
+  else if (b.id === 'nAbbr') { ansicht = 'person'; zeigePanel(); }
+  else if (b.id === 'nOk') uebernehmen();
+  else if (b.id === 'eOk') elternUebernehmen();
+  else if (b.id === 'bLoeschen') loesche();
+});
+function panelEingabe(e) {
+  const t = e.target;
+  if (t.name === 'art') {
+    $('#fNeu').hidden = t.value !== 'neu';
+    $('#fBest').hidden = t.value === 'neu';
+  } else if (t.name === 'eart') {
+    $('#eNeu').hidden = t.value !== 'neu';
+    $('#eEhe').hidden = t.value !== 'ehe';
+    $('#ePers').hidden = t.value !== 'pers';
+    $('#eDat').hidden = t.value === 'ehe';
+  } else if (t.id === 'nArt') {
+    const part = t.value === 'partnerschaft';
+    $('#nDatumL').textContent = part ? 'Zusammen seit' : 'Heirat am';
+    $('#nEndeL').textContent = part ? 'Trennung am' : 'Scheidung am';
+  } else if (t.dataset.ehe || t.dataset.ende || t.dataset.eart) {
+    // Verbindung bearbeiten: Beginn-Datum, Ende-Datum oder Art (Ehe/Partnerschaft)
+    const feld = t.dataset.ehe ? 'heiratsdatum' : t.dataset.ende ? 'endedatum' : 'art';
+    const ehe = daten.ehen.find(x => x.id === (t.dataset.ehe || t.dataset.ende || t.dataset.eart));
+    if (ehe && ehe[feld] !== t.value) {
+      ehe[feld] = t.value;
+      geaendert(); zeichne();
+      if (feld === 'art') { // Beschriftungen der Datumsfelder wechseln; Scrollposition und Fokus bleiben
+        zeigePanel();
+        const s = Array.from(panel.querySelectorAll('[data-eart]')).find(x => x.dataset.eart === ehe.id);
+        if (s) s.focus({ preventScroll: true });
+      }
+    }
+  } else if (t.dataset.f && t.closest('#pFelder')) {
+    const p = person(auswahl);
+    const wert = t.type === 'checkbox' ? t.checked : t.value.trim();
+    if (p && p[t.dataset.f] !== wert) {
+      p[t.dataset.f] = wert;
+      if (p.sterbedatum) p.sterbedatumUnbekannt = false; // ein eingetragenes Datum gilt
+      $('#pName').textContent = nameVon(p);
+      geaendert(); zeichne();
+    }
+  }
+}
+// Haken „verstorben, Datum unbekannt“: sobald ein Sterbedatum eingetragen ist, wird er entfernt und gesperrt.
+document.addEventListener('input', e => {
+  if (!e.target.dataset || e.target.dataset.f !== 'sterbedatum') return;
+  const haken = e.target.closest('label').parentNode.querySelector('[data-f=sterbedatumUnbekannt]');
+  if (!haken) return;
+  if (e.target.value) haken.checked = false;
+  haken.disabled = !!e.target.value;
+});
+panel.addEventListener('input', panelEingabe);
+panel.addEventListener('change', panelEingabe);
+
+/* ---------- Kopfzeile / Start / Speichern ---------- */
+$('#titel').value = daten.titel || '';
+$('#titel').addEventListener('input', e => { daten.titel = e.target.value; geaendert(); });
+$('#b2d').addEventListener('click', () => setzeModus(false));
+$('#b3d').addEventListener('click', () => setzeModus(true));
+$('#zPlus').addEventListener('click', () => zoomKnopf(1.25));
+$('#zMinus').addEventListener('click', () => zoomKnopf(0.8));
+$('#zFit').addEventListener('click', () => einpassen(true));
+
+// Formular "Grundperson anlegen" (leerer Baum) bzw. "+ Person" (einzelne Person ohne Verbindung)
+$('#startFelder').innerHTML = felderHtml({});
+$('#bNeu').addEventListener('click', () => {
+  if (auswahl) waehle(null); // Panel schließen: es soll nur ein Formular offen sein, mit voller Fläche
+  neuDialog = true;
+  zeigeStart();
+  $('#start').scrollTop = 0;
+  $('#startFelder').querySelector('[data-f=vorname]').focus();
+});
+const startZu = () => { neuDialog = false; zeigeStart(); };
+$('#startAbbr').addEventListener('click', startZu);
+// Dialoge schließen: Escape oder Klick/Tipp neben das Formular wirkt wie "Abbrechen".
+let dlUrl = null; // Blob-Adresse der fertigen verschlüsselten Datei, solange der Dialog sie anbietet
+const sdZu = () => {
+  if ($('#sdOk').disabled) return; // während des Verschlüsselns offen lassen
+  $('#sdPw1').value = $('#sdPw2').value = '';
+  $('#speicherDialog').hidden = true;
+  if (dlUrl) { URL.revokeObjectURL(dlUrl); dlUrl = null; $('#sdLink').removeAttribute('href'); } // Blob beim Schließen freigeben
+};
+document.addEventListener('keydown', e => {
+  // Strg/Cmd+S: statt "Seite speichern" des Browsers (würde den sichtbaren Baum im Klartext sichern) den eigenen Dialog öffnen.
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 's') {
+    if (gesperrt) return;
+    e.preventDefault();
+    if ($('#speicherDialog').hidden) oeffneSpeichern();
+    return;
+  }
+  if (e.key !== 'Escape') return;
+  if (!$('#speicherDialog').hidden) sdZu();
+  else if (neuDialog && daten.personen.length) startZu();
+});
+let druckZiel = null;
+document.addEventListener('pointerdown', e => { druckZiel = e.target; });
+$('#speicherDialog').addEventListener('click', e => { if (e.target === e.currentTarget && druckZiel === e.target) sdZu(); });
+$('#start').addEventListener('click', e => { if (e.target === e.currentTarget && druckZiel === e.target && neuDialog && daten.personen.length) startZu(); });
+$('#startForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const p = neuePerson($('#startFelder'));
+  if (!p) return;
+  $('#startFelder').innerHTML = felderHtml({});
+  neuDialog = false;
+  geaendert();
+  waehle(p.id);
+  if (daten.personen.length === 1 || modus3d) einpassen(); // in 2D schiebt waehle() die neue Karte ins Bild
+});
+
+// block = verschlüsselter Datenblock; ohne Angabe werden die Daten im Klartext eingebettet.
+function speicherHtml(block) {
+  const kopie = vorlage.cloneNode(true);
+  // "<" maskieren, damit z. B. ein Script-Ende-Tag in einer Notiz den Datenblock nicht zerbricht.
+  kopie.querySelector('#stammbaum-daten').textContent = JSON.stringify(block || daten).replace(/</g, '\\u003c');
+  return '<!DOCTYPE html>\n' + kopie.outerHTML;
+}
+// Verschlüsselte Dateien bekommen einen neutralen Namen ohne Familiennamen.
+function dateiname(verschluesselt) {
+  const d = new Date(), zz = n => String(n).padStart(2, '0');
+  const nn = verschluesselt ? 'verschluesselt' : ((daten.personen[0] || {}).nachname || 'Familie').replace(/[^0-9A-Za-zÄÖÜäöüß-]+/g, '_');
+  return 'Stammbaum_' + nn + '_' + d.getFullYear() + '-' + zz(d.getMonth() + 1) + '-' + zz(d.getDate()) + '.html';
+}
+function gespeichert() {
+  offen = false;
+  $('#bSpeichern').classList.remove('offen');
+  $('#bSpeichern').title = '';
+}
+// Unverschlüsselt: direkter Download noch im Klick.
+function speichern() {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([speicherHtml()], { type: 'text/html' }));
+  a.download = dateiname(false);
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+  gespeichert();
+  sdZu();
+}
+// Verschlüsselt: Die Datei ist erst nach der Schlüsselableitung fertig. Ein Download ohne eigenen Klick wird von
+// manchen Browsern blockiert – deshalb einen echten Link anbieten. Erst der Klick darauf gilt als gespeichert.
+function bieteDownload(block) {
+  dlUrl = URL.createObjectURL(new Blob([speicherHtml(block)], { type: 'text/html' }));
+  const a = $('#sdLink');
+  a.href = dlUrl;
+  a.download = dateiname(true);
+  $('#sdEingabe').hidden = true;
+  $('#sdOk').hidden = true;
+  $('#sdFertig').hidden = false;
+  a.focus();
+}
+$('#sdLink').addEventListener('click', () => {
+  gespeichert();
+  setTimeout(sdZu, 800); // kurz warten, damit der Browser den Download sicher begonnen hat
+});
+// Speichern-Dialog: unverschlüsselt wie bisher oder mit Passwort verschlüsselt.
+function sdAnpassen() {
+  const v = $('#sdVerschl').checked;
+  $('#sdBekannt').hidden = !(basis && v);
+  $('#sdPw').hidden = !(v && (!basis || $('#sdAendern').checked));
+  $('#sdWarnung').hidden = !v;
+  $('#sdEntf').hidden = !(basis && !v);
+}
+function oeffneSpeichern() {
+  if (gesperrt) return; // gesperrte Datei: nichts zu speichern
+  $('#sdVerschl').checked = !!basis; // geschützte Datei: Haken vorbelegt, bisheriges Passwort wird wiederverwendet
+  $('#sdAendern').checked = false;
+  $('#sdPw1').value = $('#sdPw2').value = '';
+  $('#sdStatus').textContent = '';
+  $('#sdEingabe').hidden = false;
+  $('#sdOk').hidden = false;
+  $('#sdFertig').hidden = true;
+  sdAnpassen();
+  $('#speicherDialog').hidden = false;
+  $('#sdVerschl').focus();
+}
+$('#bSpeichern').addEventListener('click', oeffneSpeichern);
+$('#sdVerschl').addEventListener('change', () => { sdAnpassen(); if (!$('#sdPw').hidden) $('#sdPw1').focus(); });
+$('#sdAendern').addEventListener('change', () => { sdAnpassen(); if (!$('#sdPw').hidden) $('#sdPw1').focus(); });
+$('#sdAbbr').addEventListener('click', sdZu);
+$('#sdForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const p1 = $('#sdPw1').value, p2 = $('#sdPw2').value, status = $('#sdStatus');
+  status.classList.remove('neutral');
+  $('#sdPw1').value = $('#sdPw2').value = ''; // Passwörter nicht im Dokument stehen lassen
+  if (gesperrt || !$('#sdFertig').hidden) return;
+  if (!$('#sdVerschl').checked) {
+    if (basis && !confirm('Verschlüsselung wirklich entfernen? Die gespeicherte Datei kann dann jeder ohne Passwort lesen.')) return;
+    basis = null;
+    speichern();
+    return;
+  }
+  if (!kannKrypto()) { status.textContent = 'Verschlüsseln ist in diesem Browser hier nicht möglich. Es wurde NICHT gespeichert.'; return; }
+  const neu = !basis || $('#sdAendern').checked;
+  if (neu && p1.length < 8) { status.textContent = 'Das Passwort muss mindestens 8 Zeichen haben. Es wurde nicht gespeichert.'; return; }
+  if (neu && p1 !== p2) { status.textContent = 'Die beiden Passwörter stimmen nicht überein. Es wurde nicht gespeichert.'; return; }
+  $('#sdOk').disabled = true;
+  status.textContent = 'Verschlüssele …';
+  status.classList.add('neutral'); // Fortschritt, kein Fehler
+  (async () => {
+    try {
+      const b = neu ? await basisAus(p1.normalize('NFC')) : basis; // Umlaute einheitlich kodieren
+      const block = await verschluessle(b, JSON.stringify(daten));
+      basis = b;
+      status.textContent = '';
+      bieteDownload(block);
+    } catch (err) { status.textContent = 'Das Verschlüsseln ist fehlgeschlagen. Es wurde NICHT gespeichert.'; }
+    status.classList.remove('neutral');
+    $('#sdOk').disabled = false;
+  })();
+});
+// Passwort-Bildschirm einer geschützten Datei
+$('#sperrForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const pw = $('#spPw').value, status = $('#spStatus');
+  $('#spPw').value = ''; // Passwort nicht im Dokument stehen lassen
+  status.classList.remove('neutral');
+  if (!pw) { status.textContent = 'Bitte das Passwort eingeben.'; return; }
+  if (!kannKrypto()) { status.textContent = 'Dieser Browser kann die Datei hier nicht entschlüsseln.'; return; }
+  $('#spOk').disabled = true;
+  status.textContent = 'Entschlüssele …';
+  status.classList.add('neutral'); // Fortschritt, kein Fehler
+  try {
+    // Umlaute einheitlich kodieren (NFC). Ältere Dateien können mit der unveränderten Eingabe verschlüsselt sein:
+    // schlägt NFC fehl und unterscheidet sich die Eingabe davon, wird sie einmal unverändert versucht.
+    const nfc = pw.normalize('NFC');
+    let b = await basisAus(nfc), klar;
+    try { klar = await entschluessle(b, gesperrt); } catch (err) {
+      if (nfc === pw) throw err;
+      b = await basisAus(pw);
+      klar = await entschluessle(b, gesperrt);
+    }
+    if (!uebernimm(JSON.parse(klar))) throw new Error('Inhalt');
+    basis = b;
+    gesperrt = null;
+    status.textContent = '';
+    $('#titel').value = daten.titel || '';
+    $('#sperre').hidden = true;
+    sperreHintergrund(false);
+    zeichne();
+    einpassen();
+  } catch (err) { status.textContent = 'Falsches Passwort oder beschädigte Datei. Bitte erneut versuchen.'; }
+  status.classList.remove('neutral');
+  $('#spOk').disabled = false;
+});
+window.addEventListener('beforeunload', e => {
+  if (offen) { e.preventDefault(); e.returnValue = ''; }
+});
+
+// Solange die Datei gesperrt ist, sind Kopfzeile und Hauptbereich auch per Tastatur nicht erreichbar.
+function sperreHintergrund(an) {
+  document.querySelector('header').inert = an;
+  $('#haupt').inert = an;
+}
+zeichne();
+einpassen();
+if (gesperrt) {
+  sperreHintergrund(true);
+  $('#sperre').hidden = false;
+  if (!kannKrypto()) $('#spStatus').textContent = 'Dieser Browser kann die Datei hier nicht entschlüsseln. Bitte in einem aktuellen Browser öffnen.';
+  $('#spPw').focus();
+}
+</script><style>
+#speicherDialog{z-index:30}
+.odlg h2{margin-bottom:10px}
+#oWarte{z-index:40}
+#oWarte .kasten{text-align:center}
+#oRolle{flex:none;padding:4px 10px;border-radius:14px;background:#ffc857;color:#3a2a00;font-size:14px;font-weight:600;white-space:nowrap}
+#oSpeichern.offen::after{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;background:#e4572e;margin-left:8px}
+#oMenue{padding:0;font-size:22px;font-weight:600}
+#oBand{display:flex;align-items:center;gap:8px;padding:4px 4px 4px 12px;background:#fff4dd;color:#7a4200;font-size:14px;font-weight:600}
+#oBand.fehler{background:#fde7e5;color:#b3261e}
+#oBand span{flex:1;min-width:0}
+#oBand button{border:0;background:none;font-size:22px;padding:0}
+#oBandZu{order:2}
+#oBand #oBandAktion{flex:none;min-height:36px;padding:0 10px;border:1px solid currentColor;border-radius:8px;font-size:14px;font-weight:600}
+.oMenueListe button{display:block;width:100%;margin:8px 0;text-align:left}
+#oVerListe{max-height:50vh;overflow-y:auto}
+.oZeile{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #d8dee4}
+.oZeile span{flex:1;min-width:0}
+.oZeile small{display:block;color:#556}
+body.nurlesen #bNeu,body.nurlesen #oSpeichern,body.nurlesen #start,body.nurlesen #bHeirat,body.nurlesen #bKind,body.nurlesen #bEltern,body.nurlesen #bLoeschen,body.nurlesen .lz,body.nurlesen .nurB{display:none!important}
+@media (max-width:480px){
+  header{flex-wrap:wrap;justify-content:flex-end}
+  #titel{flex:1 0 100%}
+}
+</style>
+<div id="oTeile" hidden>
+  <span id="oRolle" hidden>Nur lesen</span>
+  <button type="button" id="oSpeichern">Speichern</button>
+  <button type="button" id="oMenue" aria-label="Menü" title="Menü">⋯</button>
+  <div id="oBand" role="status" hidden><span></span><button type="button" id="oBandZu" aria-label="Hinweis schließen">×</button><button type="button" id="oBandAktion" hidden></button></div>
+</div>
+<div id="oFehlt" class="deck odlg" hidden>
+  <div class="kasten"><h2>Stammbaum</h2><p id="oFehltText">Diese Seite ist noch nicht eingerichtet.</p></div>
+</div>
+<div id="oAnmeldung" class="deck odlg" hidden>
+  <form id="oAnForm" class="kasten">
+    <h2>Stammbaum</h2>
+    <p>Bitte das Passwort eingeben, um den Stammbaum zu öffnen.</p>
+    <label>Passwort<input type="password" id="oAnPw" autocomplete="off"></label>
+    <p id="oAnStatus" class="status" role="status"></p>
+    <div class="reihe"><button type="submit" class="primaer">Öffnen</button></div>
+  </form>
+</div>
+<div id="oEinrichten" class="deck odlg" hidden>
+  <form id="oEinForm" class="kasten">
+    <h2>Stammbaum einrichten</h2>
+    <p class="leer">Der Stammbaum ist noch nicht eingerichtet. Das kann nur, wer das Admin-Geheimnis aus den Skripteigenschaften kennt.</p>
+    <label>Admin-Geheimnis<input type="password" data-z="admin" autocomplete="off"></label>
+    <label>Lese-Passwort (mindestens 12 Zeichen, z. B. 4 zufällige Wörter)<input type="password" data-z="l1" autocomplete="new-password"></label>
+    <label>Lese-Passwort wiederholen<input type="password" data-z="l2" autocomplete="new-password"></label>
+    <label>Bearbeiten-Passwort (mindestens 12 Zeichen, z. B. 4 zufällige Wörter)<input type="password" data-z="b1" autocomplete="new-password"></label>
+    <label>Bearbeiten-Passwort wiederholen<input type="password" data-z="b2" autocomplete="new-password"></label>
+    <p class="leer">Tipp: je ein Satz aus vier zufälligen Wörtern. Das Bearbeiten-Passwort muss deutlich stärker sein als ein Familienname mit Jahreszahl.</p>
+    <div class="wahl">
+      <label><input type="radio" name="oEinArt" value="leer" checked> Leer beginnen</label>
+      <label><input type="radio" name="oEinArt" value="import"> Offline-Datei importieren</label>
+    </div>
+    <label id="oEinDateiL" hidden>Stammbaum-Datei (.html)<input type="file" id="oEinDatei" accept=".html,text/html"></label>
+    <p class="warnung">Passwörter vergessen = kein Zugriff mehr. Bitte sicher notieren.</p>
+    <p class="status" role="status"></p>
+    <div class="reihe"><button type="submit" class="primaer">Einrichten</button></div>
+  </form>
+</div>
+<div id="oPasswoerter" class="deck halb odlg" hidden>
+  <form id="oPwForm" class="kasten">
+    <h2>Passwörter ändern</h2>
+    <p class="leer">Es werden immer beide Passwörter neu gesetzt. Danach gelten nur noch die neuen. Ältere Versionen bleiben für Bearbeiter lesbar.</p>
+    <label>Admin-Geheimnis<input type="password" data-z="admin" autocomplete="off"></label>
+    <label>Neues Lese-Passwort (mindestens 12 Zeichen, z. B. 4 zufällige Wörter)<input type="password" data-z="l1" autocomplete="new-password"></label>
+    <label>Neues Lese-Passwort wiederholen<input type="password" data-z="l2" autocomplete="new-password"></label>
+    <label>Neues Bearbeiten-Passwort (mindestens 12 Zeichen, z. B. 4 zufällige Wörter)<input type="password" data-z="b1" autocomplete="new-password"></label>
+    <label>Neues Bearbeiten-Passwort wiederholen<input type="password" data-z="b2" autocomplete="new-password"></label>
+    <p class="warnung">Passwörter vergessen = kein Zugriff mehr. Bitte sicher notieren.</p>
+    <p class="status" role="status"></p>
+    <div class="reihe"><button type="submit" class="primaer">Ändern</button><button type="button" data-zu="#oPasswoerter">Abbrechen</button></div>
+  </form>
+</div>
+<div id="oMenueListe" class="deck halb odlg" hidden>
+  <div class="kasten oMenueListe">
+    <h2>Menü</h2>
+    <button type="button" id="oMSicherung">Sicherung herunterladen</button>
+    <button type="button" id="oMVersionen" class="nurB">Versionen</button>
+    <button type="button" id="oMImport" class="nurB">Offline-Datei importieren</button>
+    <button type="button" id="oMPasswoerter" class="nurB">Passwörter ändern</button>
+    <button type="button" data-zu="#oMenueListe">Schließen</button>
+    <input type="file" id="oImpDatei" accept=".html,text/html" hidden>
+  </div>
+</div>
+<div id="oVersionen" class="deck halb odlg" hidden>
+  <div class="kasten">
+    <h2>Versionen</h2>
+    <p class="leer">„Laden" holt eine Version in den Editor. Erst „Speichern" macht sie zur neuesten Version; keine Version wird gelöscht.</p>
+    <div id="oVerListe"></div>
+    <p id="oVerStatus" class="status" role="status"></p>
+    <div class="reihe"><button type="button" data-zu="#oVersionen">Schließen</button></div>
+  </div>
+</div>
+<div id="oKonflikt" class="deck halb odlg" hidden>
+  <div class="kasten oMenueListe">
+    <h2>Neuere Version vorhanden</h2>
+    <p id="oKonText"></p>
+    <button type="button" id="oKonDatei">Meine Fassung als Datei sichern</button>
+    <button type="button" id="oKonNeueste" class="primaer">Meine Fassung als neueste Version speichern</button>
+    <p class="leer" id="oKonHinweis"></p>
+    <button type="button" id="oKonLaden" class="gefahr">Neuen Stand laden, meine Änderungen verwerfen</button>
+    <p id="oKonStatus" class="status" role="status"></p>
+    <button type="button" data-zu="#oKonflikt">Abbrechen (weiter bearbeiten)</button>
+  </div>
+</div>
+<div id="oVeraltet" class="deck halb odlg" hidden>
+  <div class="kasten oMenueListe">
+    <h2>Bitte neu anmelden</h2>
+    <p>Die Passwörter wurden inzwischen geändert. Der Stand im Editor ist noch hier, kann aber nicht mehr gespeichert werden.</p>
+    <button type="button" id="oAltDatei">Meine Fassung als Datei sichern</button>
+    <button type="button" id="oAltNeu" class="primaer">Neu anmelden</button>
+  </div>
+</div>
+<div id="oSperre" class="deck halb odlg" hidden>
+  <div class="kasten oMenueListe">
+    <h2>Nicht gespeichert</h2>
+    <p id="oSpText"></p>
+    <button type="button" id="oSpDatei" class="primaer">Als Datei sichern</button>
+    <button type="button" data-zu="#oSperre">Schließen (später erneut speichern)</button>
+  </div>
+</div>
+<div id="oDateiPw" class="deck halb odlg" hidden>
+  <form id="oDpForm" class="kasten">
+    <h2>Die Datei ist geschützt</h2>
+    <label>Passwort der Datei<input type="password" id="oDpPw" autocomplete="off"></label>
+    <p id="oDpStatus" class="status" role="status"></p>
+    <div class="reihe"><button type="submit" class="primaer">Öffnen</button><button type="button" id="oDpAbbr">Abbrechen</button></div>
+  </form>
+</div>
+<div id="oWarte" class="deck halb odlg" hidden>
+  <div class="kasten"><p id="oWarteText" role="status"></p></div>
+</div>
+<script type="application/json" id="online-konfig">{"scriptUrl":"https://script.google.com/macros/s/AKfycbzRxsd3FpPAxRH3ktCTkJ9H8FKd__PPy47yoH-A8raxKO8VFK1MHkKjrA2_d7Py7REq/exec"}</script>
+<script>
+// Online-Teil. Steht hinter dem Editor-Skript: Dessen Vorlage für "Speichern" (vorlage) kennt diesen Teil nicht,
+// eine heruntergeladene Sicherung ist deshalb eine ganz normale Offline-Datei.
+// Alles Kryptografische passiert hier im Browser; der Server sieht nie Klartext und nie ein Passwort.
+(function () {
+  'use strict';
+  const ITER = 600000, MAX_RUMPF = 1000000; // wie in Code.gs
+  const TEXTE = {
+    netz: 'Keine Verbindung zum Server. Bitte Internet prüfen und erneut versuchen.',
+    falsches_passwort: 'Falsches Passwort.',
+    gesperrt: 'Zu viele Fehlversuche. Bitte in 10 Minuten erneut.',
+    nur_lesen: 'Mit diesem Passwort darf nur gelesen werden.',
+    konflikt: 'Inzwischen wurde eine neuere Version gespeichert. Bitte die Seite neu laden und erneut versuchen.',
+    schluessel_veraltet: 'Die Passwörter wurden inzwischen geändert. Bitte neu anmelden.',
+    beschaeftigt: 'Der Server ist gerade beschäftigt. Bitte gleich noch einmal versuchen.',
+    zu_gross: 'Der Stammbaum ist zu groß zum Speichern.',
+    zu_viel: 'Gerade wurde zu oft gespeichert. Bitte später erneut versuchen.',
+    datei_fehlt: 'Die Datei dieser Version wurde im Ordner nicht gefunden.',
+    admin_falsch: 'Das Admin-Geheimnis ist falsch.',
+    admin_fehlt: 'Im Skript fehlt die Eigenschaft ADMIN_GEHEIMNIS (mindestens 20 Zeichen).',
+    konfiguration: 'Der Server ist nicht fertig eingerichtet (ORDNER_ID fehlt oder ist falsch).',
+    nicht_eingerichtet: 'Der Stammbaum ist nicht eingerichtet. Bitte die Seite neu laden.',
+    ungueltig: 'Der Server hat die Anfrage abgelehnt.',
+    inhalt: 'Die Daten konnten nicht entschlüsselt werden.'
+  };
+  function fehler(code, antwort, anzeige) {
+    const e = new Error(code);
+    e.code = code; e.antwort = antwort || {}; e.anzeige = anzeige;
+    return e;
+  }
+  const meldung = e => (e && (e.anzeige || TEXTE[e.code])) || 'Fehler auf dem Server. Bitte später erneut versuchen.';
+
+  /* ---------- Transport: B (google.script.run) oder A (fetch an die fest eingetragene Adresse) ---------- */
+  let transport = null, imRahmen = false;
+  if (window.google && google.script && google.script.run) {
+    transport = text => new Promise((ok, fehl) => google.script.run.withSuccessHandler(ok).withFailureHandler(fehl).api(text));
+  } else if (window.top !== window.self) {
+    imRahmen = true; // Option A läuft nie eingebettet in einer fremden Seite
+  } else {
+    let url = '';
+    try { url = String(JSON.parse($('#online-konfig').textContent).scriptUrl || ''); } catch (e) { /* keine Adresse */ }
+    // Nur die Web-App-Adresse von Google; http nur für den lokalen Testserver.
+    if (/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$|^http:\/\/(127\.0\.0\.1|localhost):\d+\/exec$/.test(url)) {
+      transport = text => fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: text, credentials: 'omit', redirect: 'follow' })
+        .then(r => { if (!r.ok) throw new Error('HTTP'); return r.text(); });
+    }
+  }
+  async function ruf(obj) {
+    const text = JSON.stringify(obj);
+    if (text.length > MAX_RUMPF) throw fehler('zu_gross');
+    let a;
+    try { a = JSON.parse(await transport(text)); } catch (e) { throw fehler('netz'); }
+    if (!a || a.ok !== true) throw fehler(a && typeof a.fehler === 'string' ? a.fehler : 'intern', a);
+    return a;
+  }
+
+  /* ---------- Krypto (Entwurf 2.1, 2.2) ---------- */
+  const utf8 = t => new TextEncoder().encode(t);
+  const zufall = n => crypto.getRandomValues(new Uint8Array(n));
+  const neueSaveId = () => b64(zufall(12));
+  const iterOk = n => Number.isInteger(n) && n >= ITER && n <= 2000000;
+  // Passwort -> KEK (nicht auslesbar) und Token für den Server. Aus dem Token lässt sich der KEK nicht berechnen.
+  async function leite(pw, salt, iter) {
+    if (!iterOk(iter)) throw fehler('intern');
+    const p = await crypto.subtle.importKey('raw', utf8(pw.normalize('NFC')), 'PBKDF2', false, ['deriveBits']);
+    const master = new Uint8Array(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: salt, iterations: iter }, p, 256));
+    let hk;
+    try { hk = await crypto.subtle.importKey('raw', master, 'HKDF', false, ['deriveKey', 'deriveBits']); } finally { master.fill(0); }
+    const hkdf = info => ({ name: 'HKDF', hash: 'SHA-256', salt: new Uint8Array(0), info: utf8(info) });
+    const kek = await crypto.subtle.deriveKey(hkdf('stammbaum-online/kek/v1'), hk, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+    const token = b64(new Uint8Array(await crypto.subtle.deriveBits(hkdf('stammbaum-online/token/v1'), hk, 256)));
+    return { kek: kek, token: token };
+  }
+  async function verschl(key, u8) {
+    const iv = zufall(12);
+    return { iv: b64(iv), ct: b64(new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, key, u8))) };
+  }
+  const entschl = async (key, c) => new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(c.iv) }, key, unb64(c.ct)));
+  const dkAus = roh => crypto.subtle.importKey('raw', roh, 'AES-GCM', false, ['encrypt', 'decrypt']);
+  // Umschlag -> nicht auslesbarer Schlüssel; die Rohbytes werden sofort überschrieben.
+  async function auspacken(key, c) {
+    const roh = await entschl(key, c);
+    try { return await dkAus(roh); } finally { roh.fill(0); }
+  }
+  async function klartext(key, c) {
+    let d;
+    try { d = JSON.parse(new TextDecoder().decode(await entschl(key, c))); } catch (e) { throw fehler('inhalt'); }
+    if (!(d && Array.isArray(d.personen) && Array.isArray(d.ehen))) throw fehler('inhalt');
+    return d;
+  }
+
+  /* ---------- Zustand ---------- */
+  // Sitzung: { rolle, token, kek, dk, umschlag, alt, schluesselNr, basisNr } – nur CryptoKeys, Token und verschlüsselte Umschläge.
+  let S = null;
+  let onlineOk = false;   // nur ein gelungenes Online-Speichern/-Laden darf "offen" zurücksetzen
+  let ausstehend = null;  // letzter Speicherversuch { text, erwartet, saveId } für die Wiederholung nach Netzabbruch
+  let konfliktNr = 0;
+
+  /* ---------- Oberfläche: Kopfzeile, Dialoge, Hinweisband ---------- */
+  const kopf = document.querySelector('header');
+  const oSp = $('#oSpeichern'), bandEl = $('#oBand');
+  $('#bSpeichern').hidden = true;
+  kopf.append($('#oRolle'), oSp, $('#oMenue'));
+  kopf.after(bandEl);
+  document.title = 'Stammbaum';
+
+  const dialogOffen = () => !!document.querySelector('.odlg:not([hidden])');
+  function zeig(sel) {
+    $(sel).hidden = false;
+    sperreHintergrund(true);
+    const f = $(sel).querySelector('input:not([type=radio]):not([type=file]),button');
+    if (f) f.focus();
+  }
+  function zu(sel) {
+    $(sel).hidden = true;
+    if (S && !dialogOffen()) sperreHintergrund(false);
+  }
+  function warte(text) { $('#oWarteText').textContent = text; $('#oWarte').hidden = false; sperreHintergrund(true); }
+  let bandZeit = 0;
+  // aktion = { text, fn }: zusätzlicher Knopf im Band
+  let bandAktion = null;
+  function band(text, art, aktion) {
+    clearTimeout(bandZeit);
+    bandEl.firstElementChild.textContent = text || '';
+    bandEl.classList.toggle('fehler', art === 'fehler');
+    bandEl.hidden = !text;
+    bandAktion = (text && aktion) || null;
+    $('#oBandAktion').hidden = !bandAktion;
+    $('#oBandAktion').textContent = bandAktion ? bandAktion.text : '';
+    if (text && art === 'kurz') bandZeit = setTimeout(() => band(''), 6000);
+  }
+  $('#oBandZu').addEventListener('click', () => band(''));
+  $('#oBandAktion').addEventListener('click', () => { if (bandAktion) bandAktion.fn(); });
+  // Führt eine Aktion eines Formulars aus: Fortschritt und Fehler stehen im Status des Formulars.
+  async function lauf(form, text, fn) {
+    const status = form.querySelector('.status'), knopf = form.querySelector('[type=submit]');
+    status.textContent = text;
+    status.classList.add('neutral');
+    if (knopf) knopf.disabled = true;
+    try { await fn(); status.textContent = ''; } catch (e) { status.textContent = meldung(e); }
+    status.classList.remove('neutral');
+    if (knopf) knopf.disabled = false;
+  }
+  const beschaeftigt = sel => !!$(sel + ' [type=submit]:disabled');
+  document.addEventListener('click', e => {
+    const b = e.target.closest && e.target.closest('[data-zu]');
+    if (b && !beschaeftigt(b.dataset.zu)) zu(b.dataset.zu);
+  });
+  // Escape schließt nur den obersten Dialog. In der Fangphase, also vor dem Editor: Ist dessen Speichern-Dialog
+  // offen, schließt der Editor ihn selbst und hier passiert nichts.
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape' || !$('#speicherDialog').hidden || !dialogOffen()) return;
+    e.stopPropagation(); // der Editor soll nicht zusätzlich sein Formular "+ Person" schließen
+    if (!$('#oDateiPw').hidden) { dpFertig(null); return; }
+    if (!$('#oWarte').hidden) return;
+    const s = ['#oSperre', '#oKonflikt', '#oPasswoerter', '#oVersionen', '#oMenueListe'].find(x => !$(x).hidden);
+    if (s && !beschaeftigt(s)) zu(s);
+  }, true);
+
+  /* ---------- Eingriffe in den Editor (Entwurf 5.2) ---------- */
+  const origOeffne = oeffneSpeichern, origGespeichert = gespeichert, origGeaendert = geaendert, origPanel = zeigePanel;
+  // Ein Sicherungs-Download gilt nicht als gespeichert.
+  gespeichert = function () {
+    if (!onlineOk) return;
+    origGespeichert();
+    oSp.classList.remove('offen');
+    oSp.title = '';
+  };
+  geaendert = function () {
+    if (!S || S.rolle !== 'bearbeiten') return;
+    origGeaendert();
+    oSp.classList.add('offen');
+    oSp.title = 'Ungespeicherte Änderungen';
+  };
+  zeigePanel = function () {
+    origPanel();
+    if (S && S.rolle !== 'bearbeiten') panel.querySelectorAll('input,select,textarea').forEach(el => { el.disabled = true; });
+  };
+  // Strg+S
+  oeffneSpeichern = function () {
+    if (!S || dialogOffen()) return;
+    if (S.rolle === 'bearbeiten') speichereOnline(S.basisNr); else sicherung();
+  };
+  function sauber() { onlineOk = true; gespeichert(); onlineOk = false; }
+  // Sicherung als Offline-Datei im bestehenden Format, im Klartext oder mit eigenem Datei-Passwort.
+  function sicherung() {
+    if (!S) return;
+    basis = null;
+    origOeffne();
+    $('#sdForm h2').textContent = 'Sicherung herunterladen';
+    $('#sdVerschl').checked = true;
+    sdAnpassen();
+    klarWarn.hidden = true;
+  }
+  // Deutliche Warnung, sobald der Haken "Mit Passwort verschlüsseln" entfernt wird.
+  const klarWarn = document.createElement('p');
+  klarWarn.id = 'oKlarWarn';
+  klarWarn.className = 'warnung';
+  klarWarn.hidden = true;
+  klarWarn.textContent = 'Achtung: Ohne Haken wird die Sicherung im Klartext gespeichert. Jeder, der die Datei bekommt, kann alle Namen, Daten und Notizen lesen.';
+  $('#sdEingabe').append(klarWarn);
+  $('#sdVerschl').addEventListener('change', () => { klarWarn.hidden = $('#sdVerschl').checked; });
+  function setzeRolle() {
+    const lesen = S.rolle !== 'bearbeiten';
+    document.body.classList.toggle('nurlesen', lesen);
+    $('#oRolle').hidden = !lesen;
+    $('#titel').readOnly = lesen;
+  }
+  // Billige Prüfung der Daten im Editor vor dem Zeichnen und vor dem Speichern, O(Personen + Einträge).
+  // Der Editor rechnet bei einem Kreis (jemand ist zugleich Vorfahre und Nachkomme) oder bei sehr vielen Personen
+  // sekunden- bis minutenlang – bei jeder Anmeldung, für alle. Solche Stände gelten als nicht darstellbar.
+  // Gerechnet wird wie in layout(): nur bekannte Personen, je Verbindung höchstens zwei Partner.
+  // Gemessen (Edge, Desktop): Der teuerste zulässige Fall ist eine einzige Familie mit allen Personen als Kindern,
+  // die Rechenzeit wächst quadratisch: 5000 Personen brauchen etwa 2,5 s, 3000 unter 1 s. Deshalb 3000.
+  const MAX_PERSONEN = 3000, MAX_EINTRAEGE = 12000, MAX_GENERATIONEN = 200;
+  const GRENZEN = 'höchstens ' + MAX_PERSONEN + ' Personen, ' + MAX_EINTRAEGE + ' Verbindungseinträge und ' + MAX_GENERATIONEN + ' Generationen, ohne Kreis in den Generationen';
+  function darstellbar() {
+    const P = daten.personen, E = daten.ehen;
+    if (P.length > MAX_PERSONEN || E.length > MAX_EINTRAEGE) return false;
+    let eintraege = 0;
+    for (const e of E) eintraege += e.partner.length + e.kinder.length;
+    if (eintraege > MAX_EINTRAEGE) return false;
+    // Partner bilden eine Gruppe (gleiche Generation)
+    const chef = new Map(P.map(p => [p.id, p.id]));
+    const finde = x => {
+      let r = x;
+      while (chef.get(r) !== r) r = chef.get(r);
+      while (chef.get(x) !== r) { const n = chef.get(x); chef.set(x, r); x = n; }
+      return r;
+    };
+    const F = [];
+    for (const e of E) {
+      const pa = e.partner.filter(id => chef.has(id)).slice(0, 2);
+      if (!pa.length) continue;
+      if (pa.length > 1) chef.set(finde(pa[1]), finde(pa[0]));
+      F.push({ a: pa[0], ki: e.kinder });
+    }
+    // Kanten Elterngruppe -> Kindgruppe, dann der Reihe nach abbauen (Kahn): Bleibt etwas übrig, gibt es einen Kreis.
+    const nach = new Map(), grad = new Map();
+    for (const f of F) {
+      const a = finde(f.a);
+      for (const k of f.ki) {
+        if (!chef.has(k)) continue;
+        const b = finde(k);
+        if (a === b) return false;
+        if (!nach.has(a)) nach.set(a, []);
+        nach.get(a).push(b);
+        grad.set(b, (grad.get(b) || 0) + 1);
+        if (!grad.has(a)) grad.set(a, 0);
+      }
+    }
+    const frei = [], tiefe = new Map();
+    grad.forEach((g, k) => { if (!g) { frei.push(k); tiefe.set(k, 0); } });
+    let n = 0;
+    while (frei.length) {
+      const a = frei.pop(), t = tiefe.get(a) + 1;
+      n++;
+      for (const b of nach.get(a) || []) {
+        if (t > (tiefe.get(b) || 0)) tiefe.set(b, t);
+        if (t >= MAX_GENERATIONEN) return false;
+        grad.set(b, grad.get(b) - 1);
+        if (!grad.get(b)) frei.push(b);
+      }
+    }
+    return n === grad.size;
+  }
+  // Zeigt die Daten an. Lässt sich ein Stand nicht darstellen (z. B. eine absichtlich riesige Kette, an der das
+  // Zeichnen scheitert), bleibt die Sitzung bestehen und der Baum leer: Bearbeiter kommen weiter an "Versionen".
+  function zeigDaten(passen) {
+    const zeig1 = () => {
+      $('#titel').value = daten.titel || '';
+      if (!person(auswahl)) auswahl = null;
+      zeigePanel();
+      zeichne();
+      if (passen) einpassen();
+    };
+    try {
+      if (!darstellbar()) throw new Error('Struktur');
+      zeig1();
+      return true;
+    } catch (e) {
+      uebernimm({ titel: '', personen: [], ehen: [] });
+      auswahl = null;
+      passen = true;
+      try { zeig1(); } catch (e2) { /* leerer Baum */ }
+      sauber(); // der leere Ersatz ist keine Änderung und wird nie gespeichert
+      band('Diese Version kann nicht dargestellt werden' + (S && S.rolle === 'bearbeiten' ? ' – Menü → Versionen' : '.'), 'fehler');
+      return false;
+    }
+  }
+
+  /* ---------- Laden ---------- */
+  async function holeInfo() {
+    const i = await ruf({ aktion: 'info' });
+    if (i.eingerichtet && !(typeof i.salt === 'string' && iterOk(i.iter))) throw fehler('intern');
+    return i;
+  }
+  // Holt und entschlüsselt die aktuelle Version, ändert aber noch nichts.
+  async function holeStand(sitz) {
+    const r = await sitzRuf({ aktion: 'lesen' }, sitz);
+    let dk;
+    try { dk = await auspacken(sitz.kek, r.umschlag); } catch (e) { throw fehler('inhalt'); }
+    return { r: r, dk: dk, d: await klartext(dk, r.daten) };
+  }
+  // Gibt false zurück, wenn der Stand geladen, aber nicht darstellbar ist (dann steht der Hinweis im Band).
+  function wendeAn(sitz, st, passen) {
+    if (!uebernimm(st.d)) throw fehler('inhalt');
+    sitz.rolle = st.r.rolle === 'bearbeiten' ? 'bearbeiten' : 'lesen';
+    sitz.dk = st.dk; sitz.umschlag = st.r.umschlag; sitz.alt = Array.isArray(st.r.alt) ? st.r.alt : [];
+    sitz.schluesselNr = st.r.schluesselNr; sitz.basisNr = st.r.nr;
+    S = sitz;
+    ausstehend = null;
+    setzeRolle();
+    sauber();
+    return zeigDaten(passen);
+  }
+  // Aufrufe einer laufenden Sitzung: Ein abgelehntes Token heißt, dass die Passwörter geändert wurden.
+  // Sendet Token, Schlüsselnummer und das letzte Ticket des Servers mit (Ticket nur im Arbeitsspeicher).
+  async function sitzRuf(obj, sitz) {
+    sitz = sitz || S;
+    obj.token = sitz.token;
+    if (sitz.ticket) obj.ticket = sitz.ticket;
+    if (obj.schluesselNr === undefined && Number.isInteger(sitz.schluesselNr)) obj.schluesselNr = sitz.schluesselNr;
+    try {
+      const r = await ruf(obj);
+      if (typeof r.ticket === 'string') sitz.ticket = r.ticket;
+      return r;
+    } catch (e) {
+      if (sitz === S && (e.code === 'falsches_passwort' || e.code === 'schluessel_veraltet')) { zeigeVeraltet(); e.anzeige = TEXTE.schluessel_veraltet; }
+      throw e;
+    }
+  }
+  function zeigeVeraltet() {
+    ['#oMenueListe', '#oVersionen', '#oPasswoerter', '#oKonflikt', '#oSperre'].forEach(s => { $(s).hidden = true; });
+    zeig('#oVeraltet');
+  }
+
+  /* ---------- Anmeldung ---------- */
+  $('#oAnForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const pw = $('#oAnPw').value;
+    $('#oAnPw').value = ''; // Passwort nicht im Dokument stehen lassen
+    if (!pw) { $('#oAnStatus').textContent = 'Bitte das Passwort eingeben.'; return; }
+    lauf(e.target, 'Öffne …', async () => {
+      const i = await holeInfo();
+      if (!i.eingerichtet) { $('#oAnmeldung').hidden = true; zeig('#oEinrichten'); return; }
+      const z = await leite(pw, unb64(i.salt), i.iter);
+      const sitz = { token: z.token, kek: z.kek, schluesselNr: i.schluesselNr };
+      const st = await holeStand(sitz);
+      band('');
+      wendeAn(sitz, st, true);
+      zu('#oAnmeldung');
+    });
+  });
+
+  /* ---------- Offline-Datei lesen (Einrichten und Menü) ---------- */
+  let dpAntwort = null;
+  let dpWarte = false; // der Warte-Hinweis lag offen: solange gefragt wird, weicht er (er würde den Dialog verdecken)
+  function frageDateiPw(hinweis) {
+    $('#oDpStatus').textContent = hinweis;
+    dpWarte = !$('#oWarte').hidden;
+    $('#oWarte').hidden = true;
+    zeig('#oDateiPw');
+    return new Promise(ok => { dpAntwort = ok; });
+  }
+  function dpFertig(wert) {
+    $('#oDpPw').value = '';
+    if (dpWarte) $('#oWarte').hidden = false;
+    dpWarte = false;
+    zu('#oDateiPw');
+    if (dpAntwort) { const f = dpAntwort; dpAntwort = null; f(wert); }
+  }
+  $('#oDpForm').addEventListener('submit', e => { e.preventDefault(); dpFertig($('#oDpPw').value); });
+  $('#oDpAbbr').addEventListener('click', () => dpFertig(null));
+  // Gibt die Daten der Datei zurück oder wirft mit einer klaren Meldung. Ändert nichts.
+  async function leseOfflineDatei(datei) {
+    const keine = () => fehler('datei', null, 'Das ist keine Stammbaum-Datei. Es wurde nichts geändert.');
+    if (datei.size > 20000000) throw keine();
+    let d;
+    try {
+      d = JSON.parse(new DOMParser().parseFromString(await datei.text(), 'text/html').querySelector('#stammbaum-daten').textContent);
+    } catch (e) { throw keine(); }
+    if (d && d.verschluesselt) {
+      for (let hinweis = ''; ; hinweis = 'Falsches Passwort oder beschädigte Datei. Bitte erneut versuchen.') {
+        const pw = await frageDateiPw(hinweis);
+        if (pw === null) throw fehler('abbruch', null, 'Abgebrochen. Es wurde nichts geändert.');
+        try {
+          // NFC wie im Editor; ältere Dateien können mit der unveränderten Eingabe verschlüsselt sein.
+          const nfc = pw.normalize('NFC');
+          let klar;
+          try { klar = await entschluessle(await basisAus(nfc), d); } catch (err) {
+            if (nfc === pw) throw err;
+            klar = await entschluessle(await basisAus(pw), d);
+          }
+          d = JSON.parse(klar);
+          break;
+        } catch (e) { /* erneut fragen */ }
+      }
+    }
+    if (!(d && Array.isArray(d.personen) && Array.isArray(d.ehen))) throw keine();
+    return d;
+  }
+
+  /* ---------- Einrichten und Passwortwechsel (Entwurf 2.6, 5.5) ---------- */
+  // Liest die fünf Felder, leert sie sofort und prüft sie.
+  function liesZugang(form) {
+    const w = {};
+    form.querySelectorAll('[data-z]').forEach(el => { w[el.dataset.z] = el.value.normalize('NFC'); el.value = ''; });
+    const f = t => fehler('eingabe', null, t);
+    if (!w.admin) throw f('Bitte das Admin-Geheimnis eingeben.');
+    // Länger als im Offline-Editor: Wer eine Versionsdatei in die Hand bekommt, kann Passwörter ohne Bremse durchprobieren.
+    if (w.l1.length < 12 || w.b1.length < 12) throw f('Beide Passwörter müssen mindestens 12 Zeichen haben, z. B. 4 zufällige Wörter.');
+    if (w.l1 !== w.l2) throw f('Die beiden Lese-Passwörter stimmen nicht überein.');
+    if (w.b1 !== w.b2) throw f('Die beiden Bearbeiten-Passwörter stimmen nicht überein.');
+    if (w.l1 === w.b1) throw f('Lese-Passwort und Bearbeiten-Passwort müssen verschieden sein.');
+    return { admin: w.admin, l: w.l1, b: w.b1 };
+  }
+  // Setzt beide Passwörter, ein neues Salt und einen neuen Datenschlüssel; legt die Daten im Editor als neue Version ab.
+  async function setzeZugang(z, erwartet) {
+    const salt = zufall(16);
+    const L = await leite(z.l, salt, ITER), B = await leite(z.b, salt, ITER);
+    const roh = zufall(32);
+    let dk, uL, uB;
+    try {
+      uL = await verschl(L.kek, roh);
+      uB = await verschl(B.kek, roh);
+      dk = await dkAus(roh);
+    } finally { roh.fill(0); }
+    // Frühere Datenschlüssel mit dem neuen verschlüsseln: alte Versionen bleiben ohne alte Passwörter lesbar.
+    let alt = [];
+    if (S) {
+      const pack = async (nr, altRoh) => {
+        try { alt.push(Object.assign({ schluesselNr: nr }, await verschl(dk, altRoh))); } finally { altRoh.fill(0); }
+      };
+      await pack(S.schluesselNr, await entschl(S.kek, S.umschlag));
+      for (const e of S.alt) await pack(e.schluesselNr, await entschl(S.dk, e));
+      alt = alt.slice(0, 50);
+    }
+    // Immer eine neue saveId: Eine Wiederholung hätte ein anderes Salt als der erste Versuch.
+    const r = await ruf({
+      aktion: 'admin_setzen', admin: z.admin, erwartet: erwartet, saveId: neueSaveId(),
+      zugang: { salt: b64(salt), iter: ITER, lesenToken: L.token, bearbeitenToken: B.token, umschlagLesen: uL, umschlagBearbeiten: uB, alt: alt },
+      daten: await verschl(dk, utf8(JSON.stringify(daten)))
+    });
+    // Das alte Ticket gilt nach einem Passwortwechsel nicht mehr.
+    S = { rolle: 'bearbeiten', token: B.token, kek: B.kek, dk: dk, umschlag: uB, alt: alt, schluesselNr: r.schluesselNr, basisNr: r.nr, ticket: typeof r.ticket === 'string' ? r.ticket : '' };
+    ausstehend = null;
+    setzeRolle();
+    sauber();
+  }
+  $('#oEinForm').addEventListener('change', () => { $('#oEinDateiL').hidden = $('#oEinForm').oEinArt.value !== 'import'; });
+  $('#oEinForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const form = e.target, status = form.querySelector('.status');
+    let z;
+    try { z = liesZugang(form); } catch (err) { status.textContent = meldung(err); return; }
+    const datei = form.oEinArt.value === 'import' ? $('#oEinDatei').files[0] : null;
+    if (form.oEinArt.value === 'import' && !datei) { status.textContent = 'Bitte eine Stammbaum-Datei auswählen.'; return; }
+    lauf(form, 'Richte ein …', async () => {
+      const d = datei ? await leseOfflineDatei(datei) : { titel: '', personen: [], ehen: [] };
+      if (!uebernimm(d)) throw fehler('inhalt');
+      if (!darstellbar()) throw fehler('datei', null, 'Diese Datei kann online nicht dargestellt werden (' + GRENZEN + '). Es wurde nichts eingerichtet.');
+      await setzeZugang(z, 0);
+      zu('#oEinrichten');
+      if (zeigDaten(true)) band('Eingerichtet: Version ' + S.basisNr + ' ist gespeichert. Du bist als Bearbeiter angemeldet.', 'kurz');
+    });
+  });
+  $('#oPwForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const form = e.target, status = form.querySelector('.status');
+    let z;
+    try { z = liesZugang(form); } catch (err) { status.textContent = meldung(err); return; }
+    if (!S || S.rolle !== 'bearbeiten') { status.textContent = TEXTE.nur_lesen; return; }
+    if (offen) { status.textContent = 'Bitte zuerst die Änderungen speichern.'; return; }
+    lauf(form, 'Ändere Passwörter …', async () => {
+      try { await setzeZugang(z, S.basisNr); } catch (err) {
+        if (err.code === 'falsches_passwort') zeigeVeraltet();
+        throw err;
+      }
+      zu('#oPasswoerter');
+      band('Die Passwörter sind geändert (Version ' + S.basisNr + '). Ab jetzt gelten nur noch die neuen.');
+    });
+  });
+
+  /* ---------- Speichern und Konflikt (Entwurf 3.3, 4) ---------- */
+  async function speichereOnline(erwartet) {
+    if (!S || S.rolle !== 'bearbeiten' || !$('#oWarte').hidden) return false;
+    if (!offen) { band('Keine Änderungen – es wurde nichts gespeichert.', 'kurz'); return false; }
+    // Nie einen Stand speichern, den danach niemand mehr öffnen könnte.
+    if (!darstellbar()) { band('Nicht gespeichert: Der Stammbaum ist für die Online-Ansicht zu groß oder widersprüchlich (' + GRENZEN + '). Die Änderungen sind noch hier.', 'fehler'); return false; }
+    const text = JSON.stringify(daten);
+    const sende = async v => sitzRuf({
+      aktion: 'speichern', erwartet: v.erwartet, schluesselNr: S.schluesselNr, saveId: v.saveId,
+      daten: await verschl(S.dk, utf8(v.text))
+    });
+    warte('Speichere …');
+    try {
+      let r = null;
+      if (ausstehend) {
+        // Ein früherer Versuch blieb ohne Antwort. Immer zuerst diesen Versuch mit seiner saveId klären
+        // (angekommen: der Server nennt seine Nummer; nicht angekommen: er wird jetzt gespeichert).
+        // Sonst gäbe es einen Konflikt gegen die eigene Version.
+        const alt = ausstehend, r0 = await sende(alt);
+        ausstehend = null;
+        S.basisNr = erwartet = r0.nr;
+        if (alt.text === text) r = r0; // der Inhalt ist derselbe: damit ist alles gespeichert
+      }
+      if (!r) {
+        ausstehend = { text: text, erwartet: erwartet, saveId: neueSaveId() };
+        r = await sende(ausstehend);
+        ausstehend = null;
+      }
+      S.basisNr = r.nr;
+      sauber();
+      $('#oKonflikt').hidden = true;
+      band('Gespeichert als Version ' + r.nr + '.', 'kurz');
+      return true;
+    } catch (e) {
+      if (e.code !== 'netz') ausstehend = null; // der Server hat geantwortet: Es wurde sicher nichts gespeichert
+      if (e.code === 'konflikt') zeigeKonflikt(e.antwort.nr);
+      else if (e.code === 'gesperrt' || e.code === 'zu_viel') {
+        const min = Number.isFinite(e.antwort.warteSek) ? Math.max(1, Math.ceil(e.antwort.warteSek / 60)) : 0;
+        $('#oSpText').textContent = (e.code === 'zu_viel'
+          ? 'Gerade wurde zu oft gespeichert. Der Server nimmt gerade keine weitere Version an.'
+          : 'Wegen zu vieler Fehlversuche nimmt der Server gerade nichts an.') +
+          ' Deine Änderungen sind noch hier. Bitte ' + (!min ? 'später' : min >= 120 ? 'in etwa ' + Math.ceil(min / 60) + ' Stunden' : 'in etwa ' + min + ' Minuten') + ' erneut speichern und die Seite so lange offen lassen – oder die Fassung als Datei sichern.';
+        $('#oKonflikt').hidden = true;
+        zeig('#oSperre');
+      } else if (e.code !== 'falsches_passwort' && e.code !== 'schluessel_veraltet') {
+        // Im Konfliktdialog steht die Meldung im Dialog, sonst läge sie verdeckt dahinter.
+        const t = 'Nicht gespeichert, Änderungen sind noch hier. ' + meldung(e);
+        if ($('#oKonflikt').hidden) band(t, 'fehler'); else $('#oKonStatus').textContent = t;
+      }
+      return false;
+    } finally { zu('#oWarte'); }
+  }
+  function zeigeKonflikt(nr) {
+    konfliktNr = nr;
+    $('#oKonText').textContent = 'Inzwischen wurde Version ' + nr + ' gespeichert. Deine Änderungen sind noch hier.';
+    $('#oKonHinweis').textContent = 'Die fremde Version ' + nr + ' bleibt in der Versionsliste, ihre Änderungen sind aber nicht im neuen Stand.';
+    $('#oKonStatus').textContent = '';
+    zeig('#oKonflikt');
+  }
+  oSp.addEventListener('click', () => speichereOnline(S.basisNr));
+  $('#oKonDatei').addEventListener('click', sicherung);
+  $('#oAltDatei').addEventListener('click', sicherung);
+  $('#oSpDatei').addEventListener('click', sicherung);
+  $('#oKonNeueste').addEventListener('click', () => speichereOnline(konfliktNr));
+  $('#oKonLaden').addEventListener('click', async () => {
+    if (!confirm('Deine ungespeicherten Änderungen gehen verloren. Neuen Stand wirklich laden?')) return;
+    warte('Lade …');
+    try {
+      if (wendeAn(S, await holeStandSitz())) band('Neuer Stand geladen (Version ' + S.basisNr + ').', 'kurz');
+      $('#oKonflikt').hidden = true;
+    } catch (e) { $('#oKonStatus').textContent = meldung(e); }
+    zu('#oWarte');
+  });
+  const holeStandSitz = () => holeStand(S);
+  // Neu anmelden ohne Neuladen der Seite (in Option B läuft die Seite in einem iframe).
+  $('#oAltNeu').addEventListener('click', () => {
+    if (offen && !confirm('Deine ungespeicherten Änderungen gehen beim Anmelden verloren. Fortfahren?')) return;
+    S = null;
+    $('#oVeraltet').hidden = true;
+    band('');
+    zeig('#oAnmeldung');
+  });
+
+  /* ---------- Früherkennung einer neueren Version ---------- */
+  async function pruefeNeu() {
+    const ruhig = () => S && !document.hidden && !dialogOffen() && $('#speicherDialog').hidden;
+    if (!ruhig()) return;
+    try {
+      const i = await holeInfo();
+      if (!ruhig()) return;
+      if (!i.eingerichtet || i.schluesselNr !== S.schluesselNr) { zeigeVeraltet(); return; }
+      if (i.nr === S.basisNr) return;
+      if (offen) { band('Es gibt eine neuere Version – beim Speichern wirst du gefragt.'); return; }
+      // Nie mitten in einer Eingabe neu laden: offenes Formular (Partner/Kind/Eltern, neue Person) oder Feld mit Fokus.
+      const a = document.activeElement;
+      const eingabe = () => ansicht !== 'person' || neuDialog || (a && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName) && !a.readOnly);
+      if (eingabe()) { band('Es gibt eine neuere Version. Sie wird geladen, sobald das Formular geschlossen ist.'); return; }
+      const st = await holeStandSitz();
+      if (!ruhig() || offen || eingabe()) return;
+      if (wendeAn(S, st)) band('Neuer Stand geladen (Version ' + S.basisNr + ').', 'kurz');
+    } catch (e) { /* kein Netz: beim nächsten Mal */ }
+  }
+  document.addEventListener('visibilitychange', pruefeNeu);
+  setInterval(pruefeNeu, 120000);
+
+  /* ---------- Menü, Versionen, Import ---------- */
+  $('#oMenue').addEventListener('click', () => zeig('#oMenueListe'));
+  $('#oMSicherung').addEventListener('click', () => { zu('#oMenueListe'); sicherung(); });
+  const darfB = () => !!S && S.rolle === 'bearbeiten';
+  $('#oMPasswoerter').addEventListener('click', () => {
+    if (!darfB()) return;
+    $('#oPwForm .status').textContent = offen ? 'Bitte zuerst die Änderungen speichern.' : '';
+    $('#oMenueListe').hidden = true;
+    zeig('#oPasswoerter');
+  });
+  $('#oMVersionen').addEventListener('click', async () => {
+    if (!darfB()) return;
+    const liste = $('#oVerListe'), status = $('#oVerStatus');
+    liste.textContent = '';
+    status.textContent = 'Lade …';
+    status.classList.add('neutral');
+    $('#oMenueListe').hidden = true;
+    zeig('#oVersionen');
+    try {
+      const r = await sitzRuf({ aktion: 'versionen' });
+      r.versionen.forEach(v => {
+        const zeile = document.createElement('div'), text = document.createElement('span'), klein = document.createElement('small'), knopf = document.createElement('button');
+        zeile.className = 'oZeile';
+        const zeit = new Date(v.zeit);
+        text.textContent = 'Version ' + v.nr;
+        klein.textContent = (isNaN(zeit) ? String(v.zeit) : zeit.toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' })) + (v.nr === r.aktuell ? ' · aktuell' : '');
+        text.append(klein);
+        knopf.type = 'button';
+        knopf.textContent = 'Laden';
+        knopf.addEventListener('click', () => ladeVersion(v));
+        zeile.append(text, knopf);
+        liste.append(zeile);
+      });
+      status.textContent = '';
+    } catch (e) { status.textContent = meldung(e); }
+    status.classList.remove('neutral');
+  });
+  // Lädt eine ältere Version als ungespeicherte Änderung; erst "Speichern" macht sie zur neuesten Version.
+  async function ladeVersion(v) {
+    const status = $('#oVerStatus');
+    if (offen && !confirm('Du hast ungespeicherte Änderungen. Sie gehen verloren, wenn du Version ' + v.nr + ' lädst. Fortfahren?')) return;
+    warte('Lade Version ' + v.nr + ' …');
+    try {
+      const r = await sitzRuf({ aktion: 'lesen', id: v.id });
+      let key = S.dk;
+      if (r.schluesselNr !== S.schluesselNr) {
+        const e = S.alt.find(x => x.schluesselNr === r.schluesselNr);
+        if (!e) throw fehler('alt', null, 'Diese Version stammt aus einer früheren Einrichtung und lässt sich hier nicht öffnen.');
+        try { key = await auspacken(S.dk, e); } catch (err) { throw fehler('inhalt'); }
+      }
+      if (!uebernimm(await klartext(key, r.daten))) throw fehler('inhalt');
+      $('#oVersionen').hidden = true;
+      zu('#oWarte');
+      band('');
+      if (!zeigDaten(true)) {
+        // Der Baum ist jetzt leer, die aktuelle Version auf dem Server aber in Ordnung: zurück dorthin anbieten.
+        if (r.nr !== S.basisNr) band('Diese ältere Version (' + r.nr + ') kann nicht dargestellt werden.', 'fehler', { text: 'Aktuelle Version laden', fn: ladeAktuell });
+        return;
+      }
+      if (r.nr === S.basisNr) sauber();
+      else { geaendert(); band('Version ' + r.nr + ' geladen – mit Speichern wird sie zur neuesten Version.'); }
+    } catch (e) { status.textContent = meldung(e); zu('#oWarte'); }
+  }
+  async function ladeAktuell() {
+    if (!S || dialogOffen()) return;
+    warte('Lade …');
+    try {
+      if (wendeAn(S, await holeStandSitz(), true)) band('Aktuelle Version ' + S.basisNr + ' geladen.', 'kurz');
+    } catch (e) { band(meldung(e), 'fehler', { text: 'Aktuelle Version laden', fn: ladeAktuell }); }
+    zu('#oWarte');
+  }
+  $('#oMImport').addEventListener('click', () => { if (darfB()) $('#oImpDatei').click(); });
+  $('#oImpDatei').addEventListener('change', async e => {
+    const datei = e.target.files[0];
+    e.target.value = '';
+    if (!datei || !darfB()) return;
+    $('#oMenueListe').hidden = true;
+    warte('Lese Datei …');
+    try {
+      const d = await leseOfflineDatei(datei);
+      if (confirm('Die Daten im Editor werden durch die Datei ersetzt (' + d.personen.length + ' Personen). Erst „Speichern“ macht daraus eine neue Version. Fortfahren?')) {
+        const vorher = daten;
+        if (!uebernimm(d)) throw fehler('inhalt');
+        if (!darstellbar()) { daten = vorher; throw fehler('datei', null, 'Diese Datei kann online nicht dargestellt werden (' + GRENZEN + '). Es wurde nichts geändert.'); }
+        zu('#oWarte');
+        if (zeigDaten(true)) {
+          geaendert();
+          band('Datei importiert – mit Speichern wird sie zur neuesten Version.');
+        }
+      }
+    } catch (err) { band(meldung(err), 'fehler'); }
+    zu('#oWarte');
+  });
+
+  /* ---------- Start (Entwurf 5.3, 5.4) ---------- */
+  sperreHintergrund(true);
+  if (!transport || !kannKrypto()) {
+    if (imRahmen) $('#oFehltText').textContent = 'Diese Seite lässt sich nicht eingebettet in einer anderen Seite öffnen. Bitte den Link direkt im Browser öffnen.';
+    else if (transport) $('#oFehltText').textContent ='Dieser Browser kann hier nicht entschlüsseln. Bitte die Seite in einem aktuellen Browser über https öffnen.';
+    $('#oFehlt').hidden = false;
+    return;
+  }
+  zeig('#oAnmeldung');
+  holeInfo().then(i => {
+    if (!i.eingerichtet && !S && !$('#oAnmeldung').hidden) { $('#oAnmeldung').hidden = true; zeig('#oEinrichten'); }
+  }, e => { if (!S) $('#oAnStatus').textContent = meldung(e); });
+})();
+</script>
+</body></html>
