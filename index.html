@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="de"><head>
-<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-qQ+Xcw9Mk9mU/S5E5K0oj+nbz6mAVqdEcBmQR/Tnqpg=' 'sha256-gKouD+qkXQKK0eBWikp9EWTDdL8XaDg9fHtr1DtIoIM='; style-src 'unsafe-inline'; img-src data:; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'"><link rel="icon" href="data:,">
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-o5CPaBXRzqH4j4G1UbqwnzjsCvC4iqj+yQuMFuBVRkI=' 'sha256-gKouD+qkXQKK0eBWikp9EWTDdL8XaDg9fHtr1DtIoIM='; style-src 'unsafe-inline'; img-src data:; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'"><link rel="icon" href="data:,">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Stammbaum-Editor</title>
 <style>
@@ -34,7 +34,7 @@ header{display:flex;gap:8px;align-items:center;padding:6px 8px;background:#2f485
 
 #haupt{flex:1;display:flex;min-height:0}
 #buehne{flex:1;position:relative;min-width:0;min-height:0;overflow:hidden}
-#buehne.d3{background:#0b1020}
+#buehne.d3{background:#cfe6f3}
 #flaeche{position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;cursor:grab}
 #welt{position:absolute;left:0;top:0;transform-origin:0 0}
 #welt svg{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible}
@@ -57,10 +57,10 @@ header{display:flex;gap:8px;align-items:center;padding:6px 8px;background:#2f485
 
 .zoom{position:absolute;right:10px;bottom:10px;display:flex;gap:6px}
 .zoom button{box-shadow:0 1px 4px rgba(0,0,0,.25)}
-#legende{display:none;position:absolute;left:10px;top:10px;right:10px;flex-wrap:wrap;gap:4px 14px;align-items:center;color:#dfe6f5;font-size:13px;pointer-events:none}
+#legende{display:none;position:absolute;left:10px;top:10px;right:10px;flex-wrap:wrap;gap:4px 6px;align-items:center;color:#24332a;font-size:13px;pointer-events:none;transition:opacity .3s}
 .d3 #legende{display:flex}
-#legende span{white-space:nowrap}
-#legende i{display:inline-block;width:22px;height:3px;margin-right:6px;vertical-align:middle}
+#legende span{white-space:nowrap;padding:2px 9px;border-radius:11px;background:rgba(255,255,255,.84);box-shadow:0 1px 3px rgba(20,40,30,.22)}
+#legende i{display:inline-block;width:22px;height:3px;margin-right:6px;vertical-align:middle}#legende i.lf{width:11px;height:11px;border-radius:50%}#hinweis3d{display:none;position:absolute;left:10px;bottom:12px;max-width:calc(100% - 260px);padding:3px 9px;border-radius:11px;background:rgba(255,255,255,.72);box-shadow:0 1px 3px rgba(20,40,30,.2);color:#34443a;font-size:12px;pointer-events:none;transition:opacity .6s}.d3 #hinweis3d{display:block}#hinweis3d .finger{display:none}@media (pointer:coarse){#hinweis3d .maus{display:none}#hinweis3d .finger{display:inline}}@media (max-width:700px){#hinweis3d{right:10px;bottom:62px;max-width:none}#haupt:has(#panel:not([hidden])) #hinweis3d{display:none}}
 
 #start{position:absolute;left:0;top:0;right:0;bottom:0;overflow:auto;padding:16px;background:#f4f1ea}
 #start form{max-width:420px;margin:0 auto;padding:16px;background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.15)}
@@ -115,7 +115,7 @@ label textarea{min-height:80px;resize:vertical}
       <div id="welt"></div>
       <canvas id="cv"></canvas>
     </div>
-    <div id="legende"><span><i style="background:#ffc857"></i>Ehe</span><span><i style="background:repeating-linear-gradient(90deg,#ffc857 0 5px,transparent 5px 9px)"></i>Partnerschaft</span><span><b style="color:#ff8a65">/</b> beendet</span><span><i style="background:#a9743f;height:5px"></i>Eltern–Kind (Ast)</span></div>
+    <div id="legende"><span><i class="lf" style="background:#e8553a"></i>lebend</span><span><i class="lf" style="background:#c5cad0"></i>verstorben</span><span><i style="background:#f2b824"></i>Ehe</span><span><i style="background:repeating-linear-gradient(90deg,#f2b824 0 5px,transparent 5px 9px)"></i>Partnerschaft</span><span><b style="color:#d43c2a">/</b> beendet</span><span><i style="background:#7a5533;height:5px"></i>Ast: Eltern–Kind</span><span id="legRanke" hidden=""><i style="background:#5f8f4a"></i>Ranke: Kind in anderem Baum</span></div><div id="hinweis3d"><span class="maus">Ziehen: drehen · Rechte Maustaste oder Umschalt+Ziehen: verschieben · Mausrad: Zoom · Doppelklick: nah heran</span><span class="finger">1 Finger: drehen · 2 Finger: verschieben und zoomen · Doppeltipp: nah heran</span></div>
     <div class="zoom">
       <button type="button" id="zPlus" aria-label="Vergrößern">+</button>
       <button type="button" id="zMinus" aria-label="Verkleinern">−</button>
@@ -272,7 +272,7 @@ const fl = $('#flaeche'), welt = $('#welt'), cv = $('#cv'), ctx = cv.getContext(
 const buehne = $('#buehne'), panel = $('#panel');
 let L, auswahl = null, ansicht = 'person', modus3d = false, offen = false;
 let tx = 0, ty = 0, sk = 1;
-const cam = { yaw: 0.5, pitch: 0.15, dist: 900 };
+const cam = { X: 0, Y: 0, Z: 0, yaw: 0.5, pitch: 0.35, dist: 3000 }; // 3D-Kamera: Zielpunkt, Drehung, Blickhöhe, Abstand
 let p3 = new Map(), treffer = [];
 
 /* ---------- Hilfen ---------- */
@@ -576,40 +576,286 @@ function zoomAn(px, py, f) {
   anwenden();
 }
 
-/* ---------- 3D (Canvas 2D mit eigener Perspektive) ---------- */
+/* ---------- 3D (Canvas 2D mit eigener Perspektive): der Stammbaum als Obstbaum auf einer Wiese ---------- */
+// Jede Person ist eine Frucht mit Initialen und Namensschild, Eltern–Kind-Verbindungen sind Äste, Paare sitzen
+// auf einem gemeinsamen Zweig. Älteste Generation unten am Stamm, jede jüngere eine Ebene höher und weiter außen.
 const SCHRIFT = 'px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
-const NULLPUNKT = { X: 0, Y: 0, Z: 0 };
-const FOK = 1600;        // Brennweite: größer = schwächere Perspektive (der runde Baum verzerrt sonst stark)
-const DISTMAX = 400000; // größter Kameraabstand (auch sehr große Bäume passen im Hochformat ganz ins Bild)
-let t3 = new Map(), zielId = null; // Kugeltexte; Person, um die die Kamera kreist (null = Baummitte)
-const schriftVon = (teil, f) => (teil.fett ? '600 ' : '') + teil.gr * f + SCHRIFT;
-// Textzeilen einer Kugel samt nötigem Radius (in Welt-Einheiten, Schriftgrößen wie auf der 2D-Karte).
-function kugelText(p, nurName) {
-  const k = kartenText(p), z = [], kopf = [];
-  if (k.vn) kopf.push({ t: k.vn, gr: 15, fett: true });
-  if (k.zn && !nurName) kopf.push({ t: (k.vn ? ' ' : '') + k.zn, gr: 11 });
-  if (kopf.length) z.push({ teile: kopf });
-  if (k.nn) z.push({ teile: [{ t: k.nn, gr: 15 }] });
-  if (!nurName) k.dat.forEach(d => z.push({ teile: [{ t: d, gr: 11 }] }));
-  let hoehe = 0, R = 0;
-  z.forEach(l => {
-    l.b = 0;
-    l.teile.forEach(teil => { ctx.font = schriftVon(teil, 1); teil.b = ctx.measureText(teil.t).width; l.b += teil.b; });
-    l.h = Math.max.apply(null, l.teile.map(teil => teil.gr)) * 1.2;
-    hoehe += l.h;
+const S_NAME = '600 13' + SCHRIFT, S_DATUM = '11' + SCHRIFT;
+const PR = 34;                     // Radius einer Frucht (= Person) in Welt-Einheiten
+const NAH = 40;                    // was näher an der Kamera liegt, wird nicht gezeichnet
+const ruhig = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); // dann ohne Kamerafahrten
+const wickel = a => a - 2 * Math.PI * Math.round(a / (2 * Math.PI));
+const brennweite = (w, h) => 0.56 * (w + h); // Blickwinkel ca. 40 bis 60 Grad: räumlich, aber ohne starke Verzerrung
+const blickY = h => h * 0.58;                // die Blickachse trifft das Bild etwas unter der Mitte: so bleibt oben Himmel sichtbar
+
+let leute = [], aeste = [], baender = [], reihen = [], baeume = [], fams3 = []; // reihen = Bänder und Personen, je Bild nach Tiefe sortiert
+let laub = new Float32Array(0), laubV = new Float32Array(0), wiese = new Float32Array(0); // Laub hinter und vor den Ästen, Blumen
+const camAlt = { X: 0, Y: 0, Z: 0, yaw: 0, pitch: 0, dist: 1 }; // Kamera des letzten Bildes (für: bewegt sie sich schnell oder langsam?)
+let rindeM = null, schattenG = null, schattenB = 0, schattenH = 0; // Rindenmuster für den Stamm; Baumschatten in der aktuellen Größe
+let fuell3 = 0;                                // Anteil der freien Bildhöhe, den die zuletzt eingepasste Ansicht nutzt
+let waermeNr = 0, waermeAn = false;            // Vorab-Erzeugen der Bildgrößen: nächste Nummer; läuft gerade?
+let pkx = new Float32Array(0), pky = new Float32Array(0), pks = new Float32Array(0); // projizierte Punkte der Äste und Bänder
+const nrx = new Float32Array(16), nry = new Float32Array(16);                        // Querrichtung je Astpunkt (Hilfsspeicher)
+let szene = { R: 600, H: 600, yaw: 0.5 };     // Ausdehnung aller Bäume und feste Start-Blickrichtung
+let stand3 = null;                             // Kennung der Daten, für die das 3D-Layout gebaut wurde
+let rollenAlt = true, rollenId = null, hatAuswahl = false; // Hervorhebung (Auswahl, Eltern, Partner, Kinder)
+let schweb = null;                             // Person unter dem Mauszeiger
+let bilder = null;                             // vorgerenderte Bilder (Früchte, Laub, Himmel …), einmal gemalt
+const schilder = [], belegt3 = [], holz3 = [], nah3 = []; // Hilfslisten für Beschriftung und dicke Äste (werden je Bild wiederverwendet)
+let hg = null, hgPh = 0, hgG = 0;             // vorgemalter Hintergrund (Himmel über, Wiese unter dem Horizont) und seine Maße
+
+// Malt alle wiederverwendeten Bilder einmal vor: Früchte, Laub, Rinde, Schatten, Blumen, Wolken. Hier steckt die ganze
+// Feinarbeit (Verläufe, Glanzlichter, einzelne Blätter). Beim Zeichnen eines Bildes werden sie nur noch kopiert.
+function male3d() {
+  const lw = (b, h) => { const c = document.createElement('canvas'); c.width = b; c.height = h; return c; };
+  const wuerfel = saat => { let z = saat; return () => (z = z * 16807 % 2147483647) / 2147483647; };
+  // Dunst (Luftperspektive): Stufe 0 = klar … 3 = fern; 4 und 5 = zurückgenommen (wenn eine andere Person ausgewählt ist)
+  const dunst = (c, g, st) => {
+    if (!st) return;
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.globalAlpha = 1; g.globalCompositeOperation = 'source-atop';
+    g.fillStyle = 'rgba(218,230,234,' + Math.min(0.72, st * 0.13) + ')'; g.fillRect(0, 0, c.width, c.height);
+    g.globalCompositeOperation = 'source-over';
+  };
+  const mische = (a, b, t) => 'rgb(' + a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',') + ')';
+  // weicher runder Farbfleck (von f0 in der Mitte nach f1 am Rand)
+  const fleckAuf = (g, x, y, r, f0, f1) => {
+    const v = g.createRadialGradient(x, y, 0, x, y, r);
+    v.addColorStop(0, f0); v.addColorStop(1, f1);
+    g.fillStyle = v; g.fillRect(x - r, y - r, 2 * r, 2 * r);
+  };
+  const B = { himmelOben: '#4f93d8' };
+
+  // Frucht: ein Apfel mit Kelchgrube, Stiel und Blatt, Glanzlicht, dunklem Rand, Widerschein unten und weichem Schatten.
+  // Verstorbene: perlmuttfarben. Gemalt im Feld 256 x 256, Mitte bei (128|144), Radius 88.
+  const umriss = g => {
+    g.beginPath(); g.moveTo(128, 70);
+    g.bezierCurveTo(104, 50, 42, 58, 40, 136); g.bezierCurveTo(38, 198, 94, 236, 128, 230);
+    g.bezierCurveTo(162, 236, 218, 198, 216, 136); g.bezierCurveTo(214, 58, 152, 50, 128, 70);
+    g.closePath();
+  };
+  const frucht = (tot, st, S) => {
+    const c = lw(S, S), g = c.getContext('2d'), zf = wuerfel(77), k = S / 256;
+    g.scale(k, k); g.lineCap = 'round';
+    const bl = g.createLinearGradient(140, 8, 214, 52);
+    bl.addColorStop(0, tot ? '#c1cbb4' : '#9bd960'); bl.addColorStop(1, tot ? '#7f8d74' : '#368a2a');
+    g.fillStyle = bl;
+    g.beginPath(); g.moveTo(136, 46); g.bezierCurveTo(150, 6, 196, -2, 224, 14); g.bezierCurveTo(206, 54, 168, 62, 136, 46); g.fill();
+    g.strokeStyle = tot ? 'rgba(90,100,84,.7)' : 'rgba(34,100,28,.7)'; g.lineWidth = 2.5;
+    g.beginPath(); g.moveTo(140, 44); g.quadraticCurveTo(176, 24, 216, 17); g.stroke();
+    g.save();
+    g.shadowColor = 'rgba(30,22,8,.5)'; g.shadowBlur = 16 * k; g.shadowOffsetY = 9 * k;
+    const v = g.createRadialGradient(92, 104, 6, 128, 148, 104);
+    (tot ? [[0, '#ffffff'], [0.3, '#eef1f6'], [0.68, '#bcc4d0'], [1, '#6d7683']] : [[0, '#ffb690'], [0.24, '#f3593a'], [0.62, '#cf2a21'], [1, '#7a1210']]).forEach(s => v.addColorStop(s[0], s[1]));
+    g.fillStyle = v; umriss(g); g.fill();
+    g.restore();
+    g.save(); umriss(g); g.clip();
+    if (tot) { // Perlmutt: ein Hauch Rosa und Blau
+      fleckAuf(g, 76, 196, 84, 'rgba(255,196,222,.32)', 'rgba(255,196,222,0)');
+      fleckAuf(g, 190, 120, 84, 'rgba(170,205,255,.36)', 'rgba(170,205,255,0)');
+    } else {   // gelbe Backe, feine Streifen, Sprenkel
+      fleckAuf(g, 178, 198, 80, 'rgba(255,198,72,.4)', 'rgba(255,198,72,0)');
+      g.strokeStyle = 'rgba(255,214,150,.1)'; g.lineWidth = 3;
+      for (let i = 0; i < 16; i++) {
+        const x = 52 + i * 10 + zf() * 6;
+        g.beginPath(); g.moveTo(128 + (x - 128) * 0.3, 74); g.quadraticCurveTo(x + (x - 128) * 0.5, 150, 128 + (x - 128) * 0.5, 228); g.stroke();
+      }
+      g.fillStyle = 'rgba(255,236,196,.4)';
+      for (let i = 0; i < 46; i++) { g.beginPath(); g.arc(52 + zf() * 152, 84 + zf() * 136, 1 + zf() * 1.2, 0, 6.2832); g.fill(); }
+    }
+    const rand = g.createRadialGradient(118, 132, 58, 128, 146, 100);
+    rand.addColorStop(0, 'rgba(0,0,0,0)'); rand.addColorStop(1, tot ? 'rgba(40,50,70,.42)' : 'rgba(60,0,0,.5)');
+    g.fillStyle = rand; g.fillRect(0, 0, 256, 256);
+    fleckAuf(g, 128, 68, 26, tot ? 'rgba(70,80,100,.5)' : 'rgba(80,10,5,.55)', 'rgba(0,0,0,0)');                      // Kelchgrube
+    fleckAuf(g, 156, 214, 46, tot ? 'rgba(255,255,255,.3)' : 'rgba(255,170,130,.28)', 'rgba(255,255,255,0)');         // Widerschein
+    fleckAuf(g, 92, 104, 40, 'rgba(255,255,255,.7)', 'rgba(255,255,255,0)');                                          // Glanz
+    fleckAuf(g, 84, 94, 12, 'rgba(255,255,255,.95)', 'rgba(255,255,255,0)');
+    g.restore();
+    g.strokeStyle = tot ? '#6f675c' : '#5d3f22'; g.lineWidth = 9;
+    g.beginPath(); g.moveTo(128, 76); g.quadraticCurveTo(128, 44, 142, 22); g.stroke();
+    g.strokeStyle = 'rgba(255,225,180,.45)'; g.lineWidth = 3;
+    g.beginPath(); g.moveTo(125, 72); g.quadraticCurveTo(125, 44, 139, 23); g.stroke();
+    dunst(c, g, st);
+    return c;
+  };
+  B.frucht = [0, 1].map(tot => [0, 1, 2, 3, 4, 5].map(st => frucht(tot, st, 256)));
+  B.fruchtKlein = [0, 1].map(tot => [0, 1, 2, 3, 4, 5].map(st => frucht(tot, st, 64)));
+  B.fruchtG = []; // dieselben Früchte in festen Größen, erst bei Bedarf erzeugt
+
+  // Laub: dichte Büschel aus vielen einzelnen Blättern. Erst die tiefen, dunklen Blätter, zuletzt die hellen im Licht
+  // (oben). Jedes Blatt hat einen kleinen Schatten, einen Verlauf und eine Mittelrippe. Vier Formen, drei Dunst-Stufen.
+  const buschel = (v, st) => {
+    const c = lw(256, 256), g = c.getContext('2d'), zf = wuerfel(11 + v * 37), bl = [];
+    fleckAuf(g, 128, 138, 118, 'rgba(24,70,28,.82)', 'rgba(40,96,36,0)');
+    for (let i = 0; i < 120; i++) {
+      const a = zf() * 6.2832, r = Math.pow(zf(), 0.6) * 98, y = 128 + r * Math.sin(a) * 0.92;
+      bl.push({ x: 128 + r * Math.cos(a), y: y, l: 14 + zf() * 14, w: zf() * 6.2832, h: grenze(1.06 - y / 240 + (zf() - 0.5) * 0.5, 0, 1) });
+    }
+    bl.sort((a, b) => a.h - b.h);
+    for (const b of bl) {
+      const l = b.l, blatt = () => { g.beginPath(); g.moveTo(-l, 0); g.bezierCurveTo(-l * 0.4, -l * 0.62, l * 0.5, -l * 0.5, l, 0); g.bezierCurveTo(l * 0.5, l * 0.5, -l * 0.4, l * 0.62, -l, 0); };
+      g.setTransform(1, 0, 0, 1, b.x + 1.5, b.y + 3.5); g.rotate(b.w);
+      g.fillStyle = 'rgba(6,36,10,.3)'; blatt(); g.fill();
+      g.setTransform(1, 0, 0, 1, b.x, b.y); g.rotate(b.w);
+      const f = g.createLinearGradient(0, -l * 0.5, 0, l * 0.5);
+      f.addColorStop(0, mische([50, 126, 46], [184, 228, 112], b.h)); f.addColorStop(1, mische([26, 88, 36], [104, 180, 68], b.h));
+      g.fillStyle = f; blatt(); g.fill();
+      g.strokeStyle = b.h > 0.5 ? 'rgba(232,250,190,.5)' : 'rgba(8,56,18,.4)'; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(-l * 0.9, 0); g.lineTo(l * 0.9, 0); g.stroke();
+    }
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    // fernes Laub wird nur etwas heller und matter (nicht weiß: es soll Laub bleiben)
+    if (st) { g.globalCompositeOperation = 'source-atop'; g.fillStyle = 'rgba(196,224,196,' + st * 0.2 + ')'; g.fillRect(0, 0, 256, 256); }
+    return c;
+  };
+  B.laub = [0, 1, 2, 3].map(v => [0, 1, 2].map(st => buschel(v, st)));
+  B.laubG = []; // dieselben Büschel in festen Größen, erst bei Bedarf erzeugt
+
+  // Holzfarben je Dunst-Stufe: Schattenseite, Grundton, Lichtseite. Dazu ein Rindenmuster (Furchen und helle Grate).
+  const fern = [206, 218, 214];
+  B.holz = []; B.holzHell = []; B.holzDunkel = [];
+  for (let st = 0; st < 6; st++) {
+    const t = Math.min(0.7, st * 0.13);
+    B.holz.push(mische([118, 82, 50], fern, t)); B.holzHell.push(mische([188, 146, 98], fern, t)); B.holzDunkel.push(mische([64, 42, 26], fern, t));
+  }
+  B.rinde = lw(96, 192);
+  {
+    const g = B.rinde.getContext('2d'), zf = wuerfel(5);
+    g.lineCap = 'round';
+    for (let i = 0; i < 80; i++) {
+      const x = zf() * 96, y = zf() * 192, l = 18 + zf() * 60, a = (zf() - 0.5) * 12, b = (zf() - 0.5) * 12;
+      g.strokeStyle = i % 3 ? 'rgba(28,16,8,' + (0.22 + zf() * 0.3) + ')' : 'rgba(255,226,180,' + (0.1 + zf() * 0.16) + ')';
+      g.lineWidth = 1.5 + zf() * 3.5;
+      for (const dy of [0, -192, 192]) for (const dx of [0, -96, 96]) { // an den Rändern nahtlos fortsetzen
+        g.beginPath(); g.moveTo(x + dx, y + dy); g.bezierCurveTo(x + dx + a, y + dy + l * 0.3, x + dx + b, y + dy + l * 0.7, x + dx + a * 0.4, y + dy + l); g.stroke();
+      }
+    }
+  }
+
+  // Baumschatten: ein weicher, gleichmäßiger Fleck mit wenigen großen, ganz zarten Lichtflecken; Leuchten hinter der ausgewählten Person
+  const fleck = (S, stufen) => {
+    const c = lw(S, S), g = c.getContext('2d'), v = g.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
+    stufen.forEach(s => v.addColorStop(s[0], s[1]));
+    g.fillStyle = v; g.fillRect(0, 0, S, S);
+    return c;
+  };
+  B.schatten = fleck(256, [[0, 'rgba(24,66,26,.25)'], [0.5, 'rgba(26,70,26,.2)'], [0.8, 'rgba(28,74,26,.09)'], [1, 'rgba(30,76,26,0)']]);
+  {
+    const g = B.schatten.getContext('2d'), zf = wuerfel(31);
+    for (let i = 0; i < 40; i++) {
+      const a = zf() * 6.2832, r = Math.sqrt(zf()) * 78;
+      fleckAuf(g, 128 + r * Math.cos(a), 128 + r * Math.sin(a), 16 + zf() * 20, 'rgba(20,60,22,.045)', 'rgba(20,60,22,0)');
+    }
+  }
+  B.glut = fleck(128, [[0, 'rgba(255,224,110,.95)'], [0.45, 'rgba(255,206,80,.6)'], [1, 'rgba(255,200,70,0)']]);
+
+  // Wiese: Blumen (weiß, gelb, rosa) mit einzelnen Blütenblättern und Grasbüschel aus geschwungenen Halmen
+  B.blumen = [0, 1, 2, 3].map(art => {
+    const c = lw(64, 64), g = c.getContext('2d'), zf = wuerfel(3 + art);
+    g.lineCap = 'round';
+    if (art === 2) {
+      for (let i = 0; i < 11; i++) {
+        const x = (zf() - 0.5) * 44, hh = 22 + zf() * 34;
+        g.strokeStyle = mische([44, 112, 40], [150, 204, 96], zf()); g.lineWidth = 2 + zf() * 2.4;
+        g.beginPath(); g.moveTo(32 + x * 0.25, 63); g.quadraticCurveTo(32 + x * 0.4, 63 - hh * 0.6, 32 + x, 63 - hh); g.stroke();
+      }
+    } else {
+      g.strokeStyle = '#4c9238'; g.lineWidth = 3.4;
+      g.beginPath(); g.moveTo(30, 63); g.quadraticCurveTo(34, 44, 32, 26); g.stroke();
+      g.fillStyle = '#5aa243';
+      g.beginPath(); g.moveTo(32, 50); g.quadraticCurveTo(46, 40, 52, 46); g.quadraticCurveTo(44, 54, 32, 50); g.fill();
+      for (let i = 0; i < 7; i++) {
+        const a = i * 0.8976, x = 32 + 11 * Math.cos(a), y = 22 + 11 * Math.sin(a);
+        const v = g.createRadialGradient(32, 22, 2, x, y, 9);
+        v.addColorStop(0, ['#e8e2c8', '#f0a524', '', '#e486ae'][art]); v.addColorStop(1, ['#ffffff', '#ffe45c', '', '#fbd3e2'][art]);
+        g.fillStyle = v;
+        g.beginPath(); g.ellipse(x, y, 8, 5.4, a, 0, 6.2832); g.fill();
+      }
+      fleckAuf(g, 32, 22, 7, art === 1 ? '#b86a14' : '#f5c21c', art === 1 ? 'rgba(208,122,24,.9)' : 'rgba(236,170,20,.9)');
+    }
+    return c;
   });
-  let y = -hoehe / 2;
-  z.forEach(l => { l.y = y + l.h / 2; R = Math.max(R, Math.hypot(l.b / 2, Math.abs(l.y) + l.h * 0.4)); y += l.h; });
-  return { z: z, R: R + 5 };
+
+  // Wolken (vier Formen): helle Kuppen, bläulich-graue Unterseite. Dazu der Sonnenschein.
+  const zf = wuerfel(4711);
+  B.wolke = [0, 1, 2, 3].map(() => {
+    const c = lw(320, 160), g = c.getContext('2d');
+    for (let k = 0; k < 24; k++) {
+      const t = zf(), r = 20 + zf() * 28;
+      fleckAuf(g, 62 + t * 196, 100 - Math.sin(t * 3.1416) * (22 + zf() * 30) + zf() * 12, r, 'rgba(255,255,255,.9)', 'rgba(255,255,255,0)');
+    }
+    g.globalCompositeOperation = 'source-atop';
+    const v = g.createLinearGradient(0, 56, 0, 128);
+    v.addColorStop(0, 'rgba(255,248,236,0)'); v.addColorStop(1, 'rgba(126,146,184,.6)');
+    g.fillStyle = v; g.fillRect(0, 0, 320, 160);
+    return c;
+  });
+  B.sonne = fleck(256, [[0, 'rgba(255,255,246,1)'], [0.07, 'rgba(255,252,228,.95)'], [0.2, 'rgba(255,244,200,.5)'], [0.5, 'rgba(255,238,190,.18)'], [1, 'rgba(255,236,190,0)']]);
+  // Wolken am Himmel: Richtung (Winkel), Höhe über dem Horizont, Größe, Form
+  B.wolken = [];
+  for (let i = 0; i < 30; i++) B.wolken.push([(i + zf() * 0.8) * 6.2832 / 30, i % 2 ? 0.22 + zf() * 0.6 : 0.05 + zf() * 0.13, (i % 2 ? 0.12 : 0.06) + zf() * 0.08, i % 4]);
+  // Die fertigen Bilder als unveränderliche Bitmaps ablegen: der Browser zeichnet sie deutlich schneller als Canvas-Flächen.
+  if (window.createImageBitmap) {
+    const tausche = (liste, i) => {
+      if (Array.isArray(liste[i])) liste[i].forEach((x, k) => tausche(liste[i], k));
+      else if (liste[i] && liste[i].getContext && i !== 'rinde') createImageBitmap(liste[i]).then(bm => { liste[i] = bm; fordere(); }, () => {});
+    };
+    Object.keys(B).forEach(k => tausche(B, k));
+  }
+  return B;
 }
-// 3D-Layout als Baum: älteste Generation unten in der Mitte (Stamm), jede jüngere Generation eine Ebene
-// höher und weiter außen. Jeder Teilbaum bekommt rund um die Hochachse einen Winkelbereich, der zu
-// seinem Platzbedarf passt, damit sich Äste nicht kreuzen. Eingeheiratete stehen neben ihrem Partner.
-let staemme = [], dicke3 = new Map(), startYaw = 0.5; // Stammfüße; Astdicke je Kind (aus der Zahl der Nachkommen); Blickrichtung beim Einpassen
+
+// Frucht in fester Größe. nr = (verstorben ? 6 : 0) + Dunst-Stufe, mal 128, plus Kantenlänge in Bildpunkten.
+function fruchtBild(nr) {
+  const B = bilder, S = nr & 127, v = nr >> 7;
+  let c = B.fruchtG[nr];
+  if (!c) {
+    c = B.fruchtG[nr] = document.createElement('canvas');
+    c.width = c.height = S;
+    c.getContext('2d').drawImage((S < 44 ? B.fruchtKlein : B.frucht)[v >= 6 ? 1 : 0][v % 6], 0, 0, S, S);
+  }
+  return c;
+}
+// Laubbüschel in fester Größe. nr = (Form * 3 + Dunst-Stufe) * 64 + Größenstufe (8 Bildpunkte mal 1,12 hoch Stufe).
+function laubBild(nr) {
+  const B = bilder, v = nr >> 6;
+  let c = B.laubG[nr];
+  if (!c) {
+    const S = Math.round(8 * Math.pow(1.12, nr & 63));
+    c = B.laubG[nr] = document.createElement('canvas');
+    c.width = c.height = S;
+    c.getContext('2d').drawImage(B.laub[v / 3 | 0][v % 3], 0, 0, S, S);
+  }
+  return c;
+}
+// Erzeugt die gängigen Größen von Früchten und Laub vorab, in kleinen Portionen zwischen den Bildern.
+// So stockt das Bild nicht, wenn nach einem Ansichtswechsel viele neue Größen auf einmal gebraucht werden.
+// In der 2D-Ansicht ruht das (und läuft beim nächsten 3D-Bild weiter).
+function waerme3d() {
+  const t0 = performance.now(), N = 12 * 58 + 12 * 25;
+  waermeAn = false;
+  if (!modus3d || !bilder) return;
+  for (; waermeNr < N && performance.now() - t0 < 5; waermeNr++) {
+    if (waermeNr < 12 * 58) fruchtBild((waermeNr / 58 | 0) * 128 + 7 + waermeNr % 58); // Kantenlängen 7 bis 64
+    else laubBild(((waermeNr - 12 * 58) / 25 | 0) * 64 + (waermeNr - 12 * 58) % 25);
+  }
+  if (waermeNr < N) { waermeAn = true; setTimeout(waerme3d, 30); }
+}
+
+// 3D-Layout als Baum. Jeder Teilbaum bekommt rund um den Stamm einen Winkelbereich, der zu seinem Platzbedarf passt,
+// damit sich Äste nicht kreuzen. Eingeheiratete stehen neben ihrem Partner. Wird nur neu gebaut, wenn sich die Daten
+// geändert haben (nicht bei bloßer Auswahl).
 function baue3d() {
-  const ABST = 112, PAAR = 175, STUFE = 300; // Platz je Kugel am Ring; Abstand zwischen Partnern (Platz für Symbol und Datum); kleinster Ringabstand
-  p3 = new Map(); t3 = new Map(); staemme = []; dicke3 = new Map();
-  const P = daten.personen, gen = id => L.pos.get(id).g;
+  const sig = JSON.stringify([
+    daten.personen.map(p => [p.id, p.vorname, p.zweitname, p.nachname, p.geburtsdatum, p.sterbedatum, p.sterbedatumUnbekannt]),
+    daten.ehen.map(e => [e.partner, e.kinder, e.art, e.heiratsdatum, e.endedatum])]);
+  if (sig === stand3) return;
+  stand3 = sig;
+  const ABST = 100, PAAR = 132, STUFE = 300; // Platz je Person am Ring; Abstand zwischen Partnern; kleinster Ringabstand
+  const P = daten.personen, gen = id => L.pos.get(id).g, pVon = new Map(P.map(p => [p.id, p]));
+  p3 = new Map(); leute = []; aeste = []; baender = []; baeume = []; fams3 = []; treffer = []; schweb = null; rollenAlt = true;
+  let saat = 7; // fester Startwert: derselbe Baum sieht immer gleich aus
+  const zufall = () => (saat = saat * 16807 % 2147483647) / 2147483647;
   const famVon = new Map(P.map(p => [p.id, []])), hatEltern = new Set();
   for (const f of L.F) { f.pa.forEach(id => famVon.get(id).push(f)); f.ki.forEach(id => hatEltern.add(id)); }
   // Nachkommen zählen (zyklensicher)
@@ -625,19 +871,18 @@ function baue3d() {
     return n;
   };
   P.forEach(p => zaehle(p.id, new Set()));
-  const hoehe = g => (L.maxG / 2 - g); // in Ebenen; ältere Generation = weiter unten (größeres Y)
 
   // Knoten = Person mit ihren (noch nicht gesetzten) Partnern; Kinder = Knoten der Kinder.
   const belegt = new Set();
-  const knoten = id => {
+  const knoten = (id, eltern) => {
     const frei = [];
     for (const f of famVon.get(id)) for (const q of f.pa) if (q !== id && !belegt.has(q) && frei.indexOf(q) < 0) frei.push(q);
-    const kn = { g: gen(id), ids: frei.length > 1 ? [frei[0], id].concat(frei.slice(1)) : [id].concat(frei), kinder: [] };
+    const kn = { g: gen(id), haupt: id, eltern: eltern, ids: frei.length > 1 ? [frei[0], id].concat(frei.slice(1)) : [id].concat(frei), kinder: [], rec: [], auf: 0, a: 0, baum: null };
     kn.ids.forEach(x => belegt.add(x));
     const kids = [];
     for (const x of kn.ids) for (const f of famVon.get(x)) for (const k of f.ki) if (!belegt.has(k) && kids.indexOf(k) < 0) kids.push(k);
     kids.sort((a, b) => L.pos.get(a).x - L.pos.get(b).x);
-    for (const k of kids) if (!belegt.has(k)) kn.kinder.push(knoten(k));
+    for (const k of kids) if (!belegt.has(k)) kn.kinder.push(knoten(k, kn));
     return kn;
   };
   // Platzbedarf als Winkel (bezogen auf Ringabstand 1): eigener Bedarf oder Summe der Kinder.
@@ -645,20 +890,19 @@ function baue3d() {
     kn.d = Math.max(1, kn.g - g0);
     let s = 0;
     kn.kinder.forEach(c => { s += bedarf(c, g0); });
-    kn.need = Math.max(((kn.ids.length - 1) * PAAR + ABST) / kn.d, s);
+    // Blattknoten (ohne Kinder) kommen mit etwas weniger Breite aus: Nachbarn sitzen abwechselnd weiter innen und tiefer
+    // bzw. weiter außen und höher. Enger geht es nicht, sonst verdecken sich die Früchte aus manchen Blickrichtungen.
+    kn.need = Math.max(((kn.ids.length - 1) * PAAR + ABST) * (kn.kinder.length ? 1 : kn.ids.length > 1 ? 0.9 : 0.78) / kn.d, s);
     return kn.need;
   };
-  const kreise = []; // bereits belegte Grundflächen (für weitere Wurzeln)
-  let VH = 0;        // Höhe einer Ebene, vom Hauptbaum bestimmt
+  const alle = []; // jeder Baum zuerst für sich, um seine eigene Mitte
   const setzeBaum = wurzelId => {
-    const wk = knoten(wurzelId), g0 = wk.g;
+    const wk = knoten(wurzelId, null), g0 = wk.g, orte = [];
     let summe = 0, tiefe = 0;
     wk.kinder.forEach(c => { summe += bedarf(c, g0); });
     const U = Math.max(STUFE, summe / (2 * Math.PI)); // Ringabstand: so groß, dass alles auf den Vollkreis passt
-    if (!VH) VH = Math.max(170, U * 0.75);            // Ebenenhöhe wächst mit, damit die Krone nicht flach wird
-    const orte = []; // erst relativ zur Baummitte, danach verschoben
-    const lege = (kn, a0, a1, wurzel) => {
-      const r = wurzel ? 0 : kn.d * U, n = kn.ids.length;
+    const lege = (kn, a0, a1, auf) => {
+      const wurzel = kn === wk, n = kn.ids.length;
       let sk2 = 0;
       kn.kinder.forEach(c => { sk2 += c.need; });
       const f = wurzel ? 2 * Math.PI / (sk2 || 1) : 1 / U; // Wurzel: Kinder füllen den Vollkreis
@@ -668,199 +912,932 @@ function baue3d() {
         let w0 = a0, gross = null;
         kn.kinder.forEach(c => { if (!gross || c.need > gross.need) { gross = c; a = w0 + c.need * f / 2; } w0 += c.need * f; });
       }
-      kn.a = a;
+      // Geschwister sitzen abwechselnd etwas höher und weiter außen bzw. tiefer und weiter innen:
+      // das wirkt natürlicher und schafft Platz für die Namensschilder.
+      const r = wurzel ? 0 : kn.d * U + auf * 42;
+      kn.a = a; kn.auf = auf;
       tiefe = Math.max(tiefe, r);
       kn.ids.forEach((id, i) => {
-        const ab = (i - (n - 1) / 2) * PAAR, aa = r ? a + ab / r : a;
-        orte.push({ id: id, X: r ? r * Math.sin(aa) : ab * Math.cos(a), Z: r ? -r * Math.cos(aa) : ab * Math.sin(a), t: aa });
+        const ab = (i - (n - 1) / 2) * PAAR;
+        orte.push({ id: id, kn: kn, i: i, X: r * Math.sin(a) + ab * Math.cos(a), Z: -r * Math.cos(a) + ab * Math.sin(a) });
       });
-      kn.kinder.forEach(c => { lege(c, c0, c0 + c.need * f, false); c0 += c.need * f; });
+      const nk = kn.kinder.length;
+      kn.kinder.forEach((c, k) => { lege(c, c0, c0 + c.need * f, nk > 1 ? (k % 2 ? 1 : -1) : 0); c0 += c.need * f; });
     };
-    lege(wk, 0, 2 * Math.PI, true);
-    // Startblick des Hauptbaums: der größte Ast zeigt (leicht schräg) zur Kamera und steht so breit im Bild.
-    if (!kreise.length) startYaw = wk.a + 0.12;
-    // Platz für diesen Baum: der erste steht in der Mitte, weitere Wurzeln daneben (Richtung: verwandte Person im Hauptbaum).
-    const R = tiefe + ABST;
-    let cx = 0, cz = 0;
-    if (kreise.length) {
-      let wink = kreise.length * 2.4;
-      for (const o of orte) {
-        const rel = [];
-        for (const f of famVon.get(o.id)) f.pa.concat(f.ki).forEach(x => rel.push(x));
-        const v = rel.map(x => p3.get(x)).filter(Boolean)[0];
-        if (v) { wink = Math.atan2(v.X, -v.Z); break; }
-      }
-      let dist = kreise[0].R + R;
-      for (let i = 0; i < 500; i++) {
-        cx = dist * Math.sin(wink); cz = -dist * Math.cos(wink);
-        if (!kreise.some(k => Math.hypot(k.X - cx, k.Z - cz) < k.R + R)) break;
-        dist += ABST * 2;
-      }
-    }
-    kreise.push({ X: cx, Z: cz, R: R });
-    const kd = U / STUFE; // große Bäume: Äste und Stamm entsprechend kräftiger
-    orte.forEach(o => {
-      p3.set(o.id, { X: o.X + cx, Y: hoehe(gen(o.id)) * VH, Z: o.Z + cz, t: o.t });
-      dicke3.set(o.id, Math.min(40, kd * (3 + 2.4 * Math.sqrt(nach.get(o.id)))));
-    });
-    const fuss = wk.ids.map(id => p3.get(id));
-    staemme.push({
-      X: fuss.reduce((s, v) => s + v.X, 0) / fuss.length, Z: fuss.reduce((s, v) => s + v.Z, 0) / fuss.length,
-      Y: hoehe(g0) * VH, lang: VH * 0.6, dick: Math.min(90, kd * (10 + 3 * Math.sqrt(Math.max.apply(null, wk.ids.map(id => nach.get(id))))))
-    });
+    lege(wk, 0, 2 * Math.PI, 0);
+    alle.push({ wk: wk, U: U, orte: orte, R: tiefe + ABST * 1.7, X: 0, Z: 0, wink: 0, br: 0, stamm2: 0, kd: grenze(Math.pow(U / STUFE, 0.6), 1, 2.4) });
   };
   // Hauptstamm = Wurzel mit den meisten Nachkommen; danach alle übrigen Wurzeln, zuletzt Reste (z. B. Zyklen).
   const nachGroesse = (a, b) => nach.get(b.id) - nach.get(a.id);
   P.filter(p => !hatEltern.has(p.id)).sort(nachGroesse).forEach(p => { if (!belegt.has(p.id)) setzeBaum(p.id); });
   P.slice().sort(nachGroesse).forEach(p => { if (!belegt.has(p.id)) setzeBaum(p.id); });
-  // Senkrecht mittig ausrichten (Stammfuß bis oberste Ebene)
-  let y0 = Infinity, y1 = -Infinity;
-  p3.forEach(v => { y0 = Math.min(y0, v.Y); y1 = Math.max(y1, v.Y); });
-  staemme.forEach(s => { y1 = Math.max(y1, s.Y + s.lang); });
-  const ym = p3.size ? (y0 + y1) / 2 : 0;
-  p3.forEach(v => { v.Y -= ym; });
-  staemme.forEach(s => { s.Y -= ym; });
-  for (const p of daten.personen) {
-    const voll = kugelText(p, false), name = kugelText(p, true);
-    const r = Math.max(voll.R, 30);
-    t3.set(p.id, { voll: voll.z, name: name.z, R: r, fName: Math.min(r / name.R, 1.8) });
+
+  const haupt = alle[0];
+  const VH = haupt ? grenze(haupt.U * 1.05, 250, 4000) : 250; // Höhe einer Ebene wächst mit, damit die Krone nicht flach wird
+  const STAMM = VH * 0.85;                                     // Höhe der untersten Generation über der Wiese
+  // Die Äste steigen am Stamm steil an und laufen nach außen flacher aus (Schirmkrone statt Trichter).
+  const hoch = g => STAMM + VH * 4 * (1 - Math.exp(-g / 2.4));
+  // Weitere Bäume stehen auf Ringen um den Hauptbaum, möglichst in Richtung einer verwandten Person.
+  // Je Ring einmal sortieren und der Reihe nach setzen: der Aufwand wächst nicht quadratisch mit der Zahl der Bäume.
+  if (alle.length > 1) {
+    const ortVon = new Map(haupt.orte.map(o => [o.id, o])), rest = alle.slice(1);
+    rest.forEach((b, nr) => {
+      b.wink = nr * 2.4;
+      suche: for (const o of b.orte) for (const f of famVon.get(o.id)) for (const x of f.pa.concat(f.ki)) {
+        const v = ortVon.get(x);
+        if (v && (v.X || v.Z)) { b.wink = Math.atan2(v.X, -v.Z); break suche; }
+      }
+      b.wink -= 2 * Math.PI * Math.floor(b.wink / (2 * Math.PI));
+    });
+    rest.sort((a, b) => b.R - a.R);
+    let innen = haupt.R, i = 0;
+    while (i < rest.length) {
+      const gr = rest[i].R, D = innen + gr, ring = [];
+      let voll = 0;
+      while (i < rest.length) {
+        const br = 2 * Math.asin(Math.min(1, rest[i].R / D));
+        if (ring.length && voll + br > 2 * Math.PI) break;
+        rest[i].br = br; voll += br; ring.push(rest[i++]);
+      }
+      ring.sort((a, b) => a.wink - b.wink);
+      // Wunschrichtung einhalten, soweit die Nachbarn Platz lassen; reicht der Ring dafür nicht, gleichmäßig verteilen.
+      let ende = -Infinity;
+      ring.forEach(b => { b.wink = Math.max(b.wink, ende + b.br / 2); ende = b.wink + b.br / 2; });
+      if (ende - (ring[0].wink - ring[0].br / 2) > 2 * Math.PI) {
+        const luft = (2 * Math.PI - voll) / ring.length;
+        let w0 = ring[0].wink - ring[0].br / 2;
+        ring.forEach(b => { b.wink = w0 + b.br / 2; w0 += b.br + luft; });
+      }
+      ring.forEach(b => { b.X = D * Math.sin(b.wink); b.Z = -D * Math.cos(b.wink); });
+      innen = D + gr;
+    }
   }
-}
-function proj(v, w, h) {
-  const cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw), cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
-  const o = p3.get(zielId) || NULLPUNKT, X = v.X - o.X, Y = v.Y - o.Y, Z = v.Z - o.Z;
-  const x1 = X * cy + Z * sy, z1 = -X * sy + Z * cy;
-  const y2 = Y * cp - z1 * sp, z2 = Y * sp + z1 * cp;
-  const d = z2 + cam.dist, s = FOK / Math.max(d, 1);
-  return { x: w / 2 + x1 * s, y: h / 2 + y2 * s, s: s, d: d };
-}
-// Welcher Text passt bei Maßstab s in eine Kugel? 2 = alles (Daten ab ca. 9 px Schrift),
-// 1 = nur der Name (füllt die Kugel, ab ca. 7 px Schrift), 0 = nichts.
-const textStufe = (T, s) => 11 * s >= 8.6 ? 2 : (15 * s * T.fName >= 7 ? 1 : 0);
-// Wie gut ist die aktuelle Kamera lesbar? "namen" = Kugeln im Bild, deren Name (weitgehend) frei vor den vorderen Kugeln steht;
-// "wert" gewichtet, wie frei die Namen stehen, und bewertet die Datumstexte an Verbindungen
-// (gut: frei zwischen den Partnern; schlecht: über einer Kugel). Damit wählt "Einpassen" Blickrichtung und Startansicht.
-function lesbar3d(w, h) {
-  const l = [], k = new Map();
-  p3.forEach((v, id) => { const q = proj(v, w, h), T = t3.get(id), o = { x: q.x, y: q.y, d: q.d, r: T.R * q.s, st: textStufe(T, q.s) }; k.set(id, o); if (q.d > 20) l.push(o); });
-  const imBild = (x, y) => x > 0 && x < w && y > 0 && y < h;
-  // frei = im Bild und keine vordere Kugel liegt über dem Punkt
-  const frei = (x, y, d) => imBild(x, y) && !l.some(o => o.d < d - 1 && Math.hypot(o.x - x, o.y - y) < o.r);
-  let n = 0, namen = 0;
-  for (const o of l) {
-    if (!o.st || !imBild(o.x, o.y)) continue;
-    // Anteil des Textbereichs (ca. 0,55 Radien um die Mitte), den die vorderen Kugeln frei lassen
-    let anteil = 1;
-    for (const v of l) if (v.d < o.d - 1) anteil = Math.min(anteil, (Math.hypot(v.x - o.x, v.y - o.y) - v.r) / (o.r * 0.55));
-    anteil = grenze(anteil, 0, 1);
-    if (anteil >= 0.6) namen++;
-    n += anteil * 6;
+
+  // Personen: Ort, Texte und Textbreiten
+  const erst = s => { const t = (s || '').trim(); return t ? Array.from(t)[0].toUpperCase() : ''; };
+  const kuerze = (t, max) => {
+    if (ctx.measureText(t).width <= max) return t;
+    while (t.length > 1 && ctx.measureText(t + '…').width > max) t = t.slice(0, -1);
+    return t + '…';
+  };
+  const knListe = [];
+  let maxY = STAMM;
+  ctx.font = S_NAME;
+  for (const b of alle) for (const o of b.orte) {
+    const kn = o.kn, p = pVon.get(o.id), k = kartenText(p);
+    if (!kn.baum) { kn.baum = b; kn.dy = kn.auf * 42 + (zufall() - 0.5) * 30; knListe.push(kn); }
+    const name = kuerze([k.vn, k.nn].filter(Boolean).join(' '), 210), lang = kuerze([k.vn, k.zn, k.nn].filter(Boolean).join(' '), 230);
+    const rec = {
+      typ: 0, id: o.id, kn: kn, i: o.i, baum: b, X: b.X + o.X, Y: hoch(gen(o.id)) + kn.dy, Z: b.Z + o.Z,
+      tot: istTot(p), ini: (erst(k.vn) + erst(k.nn)) || '?', name: name, lang: lang, dat: k.dat.join('   '),
+      nb: ctx.measureText(name).width, lb: ctx.measureText(lang).width, db: 0,
+      wurzel: kn === b.wk && b.orte.length > 2, rolle: 0, g: gen(o.id), kopf: kn.kinder.length > 0,
+      x: 0, y: 0, s: 0, d: 0, r: 0, sicht: false,                               // Lage im aktuellen Bild
+      nahe: 1, sa: 0, zs: 0, st: 1, ok: false, pri: 0, sx0: 0, sy0: 0, sb: 0, sh: 0, sdx: 0, sdy: 0 // Namensschild: Deckkraft, Stufe, Rechteck
+    };
+    kn.rec.push(rec); leute.push(rec); p3.set(o.id, rec);
+    maxY = Math.max(maxY, rec.Y);
   }
+  ctx.font = S_DATUM;
+  leute.forEach(o => { o.db = o.dat ? ctx.measureText(o.dat).width : 0; });
+
+  // Kurven (Äste, Stämme, Sitzzweige, Ranken) als Punktfolgen mit Dicke
+  const kurve = (art, A, C, B, r0, r1, n) => {
+    const pts = new Float32Array(n * 3), rad = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+      const t = i / (n - 1), u = 1 - t;
+      pts[i * 3] = u * u * A.X + 2 * u * t * C.X + t * t * B.X;
+      pts[i * 3 + 1] = u * u * A.Y + 2 * u * t * C.Y + t * t * B.Y;
+      pts[i * 3 + 2] = u * u * A.Z + 2 * u * t * C.Z + t * t * B.Z;
+      rad[i] = r0 + (r1 - r0) * t;
+    }
+    // art: 0 Ast, 1 Stamm, 2 Sitzzweig eines Paares, 3 Ranke (Kind steht in einem anderen Baum)
+    const a = { typ: 1, art: art, pts: pts, rad: rad, n: n, o: 0, fam: null, kind: null, kis: null, an: null, hv: false, d: 0, st: 0, sicht: false };
+    aeste.push(a);
+    return a;
+  };
+  // Sitzzweig: leicht durchhängender Zweig unter allen Personen eines Knotens. sitz(kn, t) = Punkt darauf.
+  const sitzC = kn => {
+    const A = kn.rec[0], B = kn.rec[kn.rec.length - 1];
+    return { X: (A.X + B.X) / 2, Y: (A.Y + B.Y) / 2 - 2 * (26 + 7 * (kn.rec.length - 2)), Z: (A.Z + B.Z) / 2 };
+  };
+  const sitz = (kn, t) => {
+    const A = kn.rec[0], B = kn.rec[kn.rec.length - 1];
+    if (A === B) return { X: A.X, Y: A.Y, Z: A.Z };
+    const C = sitzC(kn), u = 1 - t;
+    return { X: u * u * A.X + 2 * u * t * C.X + t * t * B.X, Y: u * u * A.Y + 2 * u * t * C.Y + t * t * B.Y, Z: u * u * A.Z + 2 * u * t * C.Z + t * t * B.Z };
+  };
+  // Astdicke (Radius) am Kind: wächst mit der Zahl seiner Nachkommen
+  const dick = o => Math.min(30, o.baum.kd * (5 + 2.2 * Math.sqrt(nach.get(o.id) || 0)));
+  for (const kn of knListe) {
+    if (kn.rec.length < 2) continue;
+    const rs = grenze(dick(p3.get(kn.haupt)) * 0.8, 3.2, 14);
+    kurve(2, kn.rec[0], sitzC(kn), kn.rec[kn.rec.length - 1], rs, rs, 7).an = kn.rec;
+  }
+  const mitte = (A, B, t) => ({ X: A.X + (B.X - A.X) * t, Y: A.Y + (B.Y - A.Y) * t, Z: A.Z + (B.Z - A.Z) * t });
+  ctx.font = S_DATUM;
   for (const f of L.F) {
-    if (f.pa.length < 2 || !eheText(f.e)) continue;
-    const a = p3.get(f.pa[0]), b = p3.get(f.pa[1]), m = proj({ X: (a.X + b.X) / 2, Y: (a.Y + b.Y) / 2, Z: (a.Z + b.Z) / 2 }, w, h);
-    if (m.d <= 20 || 11 * m.s < 7.5) continue;
-    // Datum zählt, wenn es frei zwischen den beiden Partnern steht; liegt es über einer der beiden Kugeln, stört es.
-    const ka = k.get(f.pa[0]), kb = k.get(f.pa[1]);
-    n += Math.hypot(ka.x - kb.x, ka.y - kb.y) >= (ka.r + kb.r) * 0.95 && frei(m.x, m.y - 15 * m.s, m.d) ? 2 : -1;
+    const pa = f.pa.map(id => p3.get(id)).filter(Boolean), ki = f.ki.map(id => p3.get(id)).filter(Boolean);
+    if (!pa.length) continue;
+    const fam = { pa: pa, ki: ki };
+    fams3.push(fam);
+    // Band zwischen den Partnern: gerade bei Nachbarn, sonst als Bogen über die Personen dazwischen
+    if (pa.length === 2) {
+      const A = pa[0], B = pa[1], n = A.kn === B.kn && Math.abs(A.i - B.i) === 1 ? 2 : 9, pts = new Float32Array(n * 3);
+      const C = mitte(A, B, 0.5);
+      if (n > 2) C.Y = Math.max(A.Y, B.Y) + Math.min(VH * 0.7, 80 + Math.hypot(A.X - B.X, A.Z - B.Z) * 0.3);
+      for (let i = 0; i < n; i++) {
+        const t = i / (n - 1), u = 1 - t;
+        pts[i * 3] = u * u * A.X + 2 * u * t * C.X + t * t * B.X;
+        pts[i * 3 + 1] = u * u * A.Y + 2 * u * t * C.Y + t * t * B.Y;
+        pts[i * 3 + 2] = u * u * A.Z + 2 * u * t * C.Z + t * t * B.Z;
+      }
+      const text = eheText(f.e);
+      baender.push({ typ: 2, A: A, B: B, pts: pts, n: n, o: 0, part: f.e.art === 'partnerschaft', aus: !!f.e.endedatum, text: text, tb: text ? ctx.measureText(text).width : 0, hv: false, d: 0, sicht: false, sx: 0, sy: 0, ss: 0 });
+    }
+    // Kinder: eigene Äste, wenn das Kind im Baum unter diesem Paar hängt; sonst eine Ranke hinüber
+    const gruppen = new Map();
+    for (const k of ki) {
+      const pn = k.kn.haupt === k.id ? k.kn.eltern : null;
+      if (pn && pa.some(q => q.kn === pn)) { if (!gruppen.has(pn)) gruppen.set(pn, []); gruppen.get(pn).push(k); }
+      else {
+        const O = pa.length === 2 ? mitte(pa[0], pa[1], 0.5) : pa[0], C = mitte(O, k, 0.5);
+        C.Y = Math.max(O.Y, k.Y) + VH * 0.45;
+        const a = kurve(3, O, C, k, 0, 0, 12);
+        a.fam = fam; a.kind = k;
+      }
+    }
+    gruppen.forEach((kids, pn) => {
+      const drin = pa.filter(q => q.kn === pn), b = pn.baum;
+      // Ansatz: zwischen benachbarten Partnern in der Mitte ihres Sitzzweigs, sonst an der Person selbst
+      let O;
+      if (drin.length === 2 && Math.abs(drin[0].i - drin[1].i) === 1) O = sitz(pn, (Math.min(drin[0].i, drin[1].i) + 0.5) / (pn.rec.length - 1));
+      else O = drin.length === 2 && drin[0].id === pn.haupt ? drin[1] : drin[0];
+      let mX = 0, mZ = 0, minY = Infinity, streu = 0, q2 = 0;
+      kids.forEach(k => { mX += k.X; mZ += k.Z; minY = Math.min(minY, k.Y); const r = dick(k); q2 += r * r; });
+      mX /= kids.length; mZ /= kids.length;
+      kids.forEach(k => { streu = Math.max(streu, Math.hypot(k.X - mX, k.Z - mZ)); });
+      const weit = Math.hypot(mX - O.X, mZ - O.Z);
+      const zweig = (S, k, r0) => {
+        // erst nach außen, dann von unten in die Frucht
+        const C = { X: S.X + (k.X - S.X) * 0.84, Y: S.Y + (k.Y - S.Y) * 0.16, Z: S.Z + (k.Z - S.Z) * 0.84 };
+        const a = kurve(0, S, C, k, r0, dick(k), 13);
+        a.fam = fam; a.kind = k;
+      };
+      if (kids.length > 1 && pn.eltern && weit > 80) {
+        // Gemeinsamer Ast bis zur Gabel, von dort ein Zweig je Kind
+        const teil = grenze(0.56 - 0.26 * streu / weit, 0.2, 0.56);
+        const G = { X: O.X + (mX - O.X) * teil, Y: O.Y + (minY - O.Y) * teil * 0.7, Z: O.Z + (mZ - O.Z) * teil };
+        const rG = Math.min(36, Math.sqrt(q2) * 0.85 + 1.5), C = { X: O.X + (G.X - O.X) * 0.6, Y: O.Y + (G.Y - O.Y) * 0.1, Z: O.Z + (G.Z - O.Z) * 0.6 };
+        const a = kurve(0, O, C, G, rG * 1.2, rG, 9);
+        a.fam = fam; a.kis = kids;
+        kids.forEach(k => zweig(G, k, Math.min(rG, dick(k) * 1.35 + 1.5)));
+      } else kids.forEach(k => {
+        const r0 = dick(k) * 1.3 + 2;
+        if (pn === b.wk) b.stamm2 += r0 * r0;
+        zweig(O, k, r0);
+      });
+    });
   }
-  return { namen: namen, wert: namen * 100 + n }; // zuerst zählt die Zahl lesbarer Namen
+  // Stämme: von der Wiese bis zur Wurzel jedes Baums, unten breiter, leicht geschwungen. Am Fuß laufen einige
+  // kurze Wurzeln dicht am Boden in die Wiese (Wurzelanlauf).
+  for (const b of alle) {
+    const T = sitz(b.wk, 0.5), rt = b.orte.length > 1 ? grenze(Math.sqrt(b.stamm2) * 0.8, 18 * b.kd, 75) : 7, n = 14;
+    const a = kurve(1, { X: b.X, Y: 0, Z: b.Z }, { X: b.X + (zufall() - 0.5) * T.Y * 0.14, Y: T.Y * 0.5, Z: b.Z + (zufall() - 0.5) * T.Y * 0.14 }, T, rt, rt, n);
+    for (let i = 0; i < n; i++) { const t = i / (n - 1); a.rad[i] = rt * (1.45 - 0.45 * t + 0.9 * Math.exp(-t * 8)); }
+    if (b.orte.length > 1) for (let i = 0; i < 6; i++) {
+      const w0 = i * 1.047 + zufall() * 0.7, l = rt * (2.5 + zufall() * 1.3), c0 = Math.cos(w0), s0 = Math.sin(w0);
+      kurve(4, { X: b.X + c0 * rt * 0.4, Y: rt * 1.1, Z: b.Z + s0 * rt * 0.4 }, { X: b.X + c0 * l * 0.5, Y: rt * 0.22, Z: b.Z + s0 * l * 0.5 }, { X: b.X + c0 * l, Y: 0, Z: b.Z + s0 * l }, rt * 0.6, rt * 0.1, 7);
+    }
+    baeume.push({ X: b.X, Z: b.Z, R: b.R });
+  }
+
+  // Laub in zwei Schichten. Hinten (laub): Büschel um jede Person und entlang der Zweige, als dichte Krone hinter
+  // den Ästen. Vorn (laubV): kleinere Büschel über den äußeren Zweigen – sie liegen über dem Holz, aber immer unter
+  // Früchten, Bändern und Schildern.
+  const lb = [], lv = [], dicht = P.length > 1500 ? 0.4 : 1, form = () => Math.floor(zufall() * 4);
+  for (const o of leute) {
+    const blatt = !o.kn.kinder.length, n = 1 + (P.length < 60 ? 2 : 0) + (blatt && zufall() < 0.3 ? 1 : 0); // kleine Bäume bekommen mehr Laub je Person
+    for (let i = 0; i < n; i++) if (zufall() < dicht) lb.push(o.X + (zufall() - 0.5) * 200, o.Y + 20 + zufall() * 120, o.Z + (zufall() - 0.5) * 200, 140 + zufall() * 85, form());
+    if (blatt && zufall() < 0.5 * dicht) lv.push(o.X + (zufall() - 0.5) * 130, o.Y + 55 + zufall() * 70, o.Z + (zufall() - 0.5) * 130, 80 + zufall() * 55, form());
+  }
+  for (const a of aeste) if (a.art === 0 && zufall() < dicht * 0.65) {
+    const j = a.kind ? 21 : 12;
+    lb.push(a.pts[j] + (zufall() - 0.5) * 70, a.pts[j + 1] + 30 + zufall() * 60, a.pts[j + 2] + (zufall() - 0.5) * 70, 125 + zufall() * 80, form());
+    if (a.kind && zufall() < 0.25) lv.push(a.pts[27] + (zufall() - 0.5) * 60, a.pts[28] + 20 + zufall() * 40, a.pts[29] + (zufall() - 0.5) * 60, 70 + zufall() * 45, form());
+  }
+  // Kleine Familien: Die wenigen Personen stehen fast übereinander, ihr Laub ergäbe eine kantige Säule. Zusätzliche
+  // Büschel in Eiform um den ganzen Baum runden die Krone ab (hinter Ästen und Früchten, das Layout bleibt unberührt).
+  if (P.length < 60) for (const b of alle) {
+    const ps = leute.filter(o => o.baum === b);
+    if (ps.length < 3) continue;
+    let y0 = Infinity, y1 = -Infinity, rr = 0;
+    ps.forEach(o => { y0 = Math.min(y0, o.Y); y1 = Math.max(y1, o.Y); rr = Math.max(rr, Math.hypot(o.X - b.X, o.Z - b.Z)); });
+    const ry = (y1 - y0) / 2 + 150, rx = Math.max(rr * 0.8 + 100, ry * 0.5), my = (y0 + y1) / 2 + 70;
+    for (let i = ps.length * 4 + 16; i > 0; i--) {
+      const a = zufall() * 6.2832, u = zufall() * 1.8 - 0.8, k = Math.sqrt(1 - Math.min(1, u * u)) * Math.sqrt(zufall());
+      lb.push(b.X + Math.cos(a) * k * rx, Math.max(my + u * ry * (0.7 + 0.3 * zufall()), y0 - 30), b.Z + Math.sin(a) * k * rx, 150 + zufall() * 80, form());
+    }
+  }
+  laub = new Float32Array(lb); laubV = new Float32Array(lv);
+
+  let R = 0;
+  alle.forEach(b => { R = Math.max(R, Math.hypot(b.X, b.Z) + b.R); });
+  szene = { R: R || 600, H: maxY + PR * 2, yaw: haupt ? haupt.wk.a + 0.12 : 0.5 };
+  // Wiese: Blumen und Grasbüschel rund um die Bäume
+  const ws = [];
+  for (let i = 0; i < 200; i++) {
+    const a = zufall() * 6.2832, r = Math.sqrt(zufall()) * (szene.R * 1.5 + 600);
+    ws.push(r * Math.sin(a), r * Math.cos(a), (26 + zufall() * 26) * grenze(szene.R / 1500, 1, 3), Math.floor(zufall() * 4));
+  }
+  wiese = new Float32Array(ws);
+
+  let np = 0;
+  aeste.forEach(a => { a.o = np; np += a.n; });
+  baender.forEach(b => { b.o = np; np += b.n; });
+  pkx = new Float32Array(np); pky = new Float32Array(np); pks = new Float32Array(np);
+  reihen = [].concat(baender, leute);
+  const lr = $('#legRanke');
+  if (lr) lr.hidden = !aeste.some(a => a.art === 3);
 }
-function zeichne3d() {
-  const w = cv.clientWidth, h = cv.clientHeight, dpr = window.devicePixelRatio || 1;
-  if (!w || !h) return;
+
+// Wer wird hervorgehoben? Die ausgewählte Person (2), ihre Eltern, Partner und Kinder (1) und die Äste dazwischen.
+function rollen() {
+  rollenAlt = false; rollenId = auswahl;
+  const ich = p3.get(auswahl);
+  hatAuswahl = !!ich;
+  leute.forEach(o => { o.rolle = 0; });
+  if (ich) {
+    for (const f of fams3) {
+      if (f.pa.indexOf(ich) >= 0) { f.pa.forEach(o => { o.rolle = 1; }); f.ki.forEach(o => { o.rolle = 1; }); }
+      else if (f.ki.indexOf(ich) >= 0) f.pa.forEach(o => { o.rolle = 1; });
+    }
+    ich.rolle = 2;
+  }
+  aeste.forEach(a => {
+    a.hv = !!ich && (a.fam ? a.fam.pa.indexOf(ich) >= 0 || (a.kind ? a.kind === ich : a.kis.indexOf(ich) >= 0) : !!a.an && a.an.indexOf(ich) >= 0);
+  });
+  baender.forEach(b => { b.hv = !!ich && (b.A === ich || b.B === ich); });
+}
+
+/* ----- Kamera: kreist um einen Zielpunkt (cam.X, cam.Y, cam.Z); yaw = Drehung, pitch = Höhe des Blicks, dist = Abstand ----- */
+let bild3 = 0, zeit3 = 0;                      // angefordertes Bild; Zeit des letzten Bildes
+let fahrt = null, schwung = null;              // laufende Kamerafahrt; Nachdrehen nach dem Loslassen
+let zoomZiel = 0, zoomX = 0, zoomY = 0;        // weicher Zoom: Ziel-Abstand und Ankerpunkt (relativ zur Bildmitte)
+let schub3 = false, drehZeit = 0, drehVY = 0, drehVP = 0, kamNeu = true;
+let klickId = null, klickZeit = 0, klickX = 0, klickY = 0, klickBild = []; // letzter Klick und die Früchte, die dabei in seiner Nähe lagen
+let sicht3 = null;                             // zuletzt angefahrene Ansicht ({ id, nah } oder { id: null } = ganzer Baum), bis der Nutzer selbst die Kamera bewegt
+let sperr3 = [];                               // Flächen von Legende, Hinweis und Knöpfen: dort stehen keine Namensschilder
+let legU = 0, legR = 0, legBlass = false;      // Unter- und rechte Kante der Legende; sie wird blass, solange Früchte darunter liegen
+let hinweisUhr = 0;                            // blendet den Bedienhinweis nach einigen Sekunden aus
+const distMin = fok => fok * 0.3, distMax = () => (szene.R + szene.H) * 7 + 3000;
+
+// Ein einziger Zeichen-Takt: Bilder entstehen nur, wenn sich etwas bewegt oder geändert hat.
+function fordere() { if (!bild3 && modus3d) bild3 = requestAnimationFrame(schleife); }
+function schleife(t) {
+  bild3 = 0;
+  if (!modus3d) { zeit3 = 0; return; }
+  const dt = zeit3 ? grenze(t - zeit3, 1, 60) : 16;
+  zeit3 = t;
+  let weiter = bewege(dt, t);
+  if (zeichne3d(dt)) weiter = true;
+  if (weiter) fordere(); else zeit3 = 0;
+}
+// Verschiebt den Zielpunkt in der Bildebene: a nach rechts, b nach oben (Welt-Einheiten).
+function rueck(K, a, b) {
+  const cy = Math.cos(K.yaw), sy = Math.sin(K.yaw), cp = Math.cos(K.pitch), sp = Math.sin(K.pitch);
+  K.X += a * cy - b * sy * sp; K.Y += b * cp; K.Z += a * sy + b * cy * sp;
+}
+// Hält die Kamera in sinnvollen Grenzen: nie unter die Wiese, nie endlos weit weg vom Baum.
+function begrenze() {
+  const fok = brennweite(cv.clientWidth || 800, cv.clientHeight || 600);
+  cam.pitch = grenze(cam.pitch, 0.04, 1.45);
+  cam.dist = grenze(cam.dist, distMin(fok), distMax());
+  cam.Y = grenze(cam.Y, 0, szene.H * 1.15);
+  const r = Math.hypot(cam.X, cam.Z), max = szene.R * 1.15 + 300;
+  if (r > max) { cam.X *= max / r; cam.Z *= max / r; }
+}
+function zoomAuf(dist) { // Abstand ändern; der Punkt unter dem Anker (Maus, Finger) bleibt an seiner Stelle
+  const fok = brennweite(cv.clientWidth, cv.clientHeight), k = (cam.dist - dist) / fok;
+  rueck(cam, zoomX * k, -zoomY * k);
+  cam.dist = dist;
+}
+function bewege(dt, t) {
+  let weiter = false;
+  if (fahrt) {
+    if (!fahrt.t0) fahrt.t0 = t;
+    const u = fahrt.dauer ? Math.min(1, (t - fahrt.t0) / fahrt.dauer) : 1, e = u < 0.5 ? 4 * u * u * u : 1 - Math.pow(2 - 2 * u, 3) / 2;
+    const a = fahrt.von, b = fahrt.nach;
+    cam.X = a.X + (b.X - a.X) * e; cam.Y = a.Y + (b.Y - a.Y) * e; cam.Z = a.Z + (b.Z - a.Z) * e;
+    cam.yaw = a.yaw + (b.yaw - a.yaw) * e; cam.pitch = a.pitch + (b.pitch - a.pitch) * e;
+    cam.dist = a.dist * Math.pow(b.dist / a.dist, e);
+    if (u >= 1) fahrt = null; else weiter = true;
+  }
+  if (zoomZiel) {
+    let d = cam.dist * Math.pow(zoomZiel / cam.dist, 1 - Math.exp(-dt / 70));
+    if (Math.abs(Math.log(zoomZiel / d)) < 0.003) { d = zoomZiel; zoomZiel = 0; } else weiter = true;
+    zoomAuf(d);
+  }
+  if (schwung) {
+    cam.yaw += schwung.yaw * dt; cam.pitch += schwung.pitch * dt;
+    const f = Math.exp(-dt / 260);
+    schwung.yaw *= f; schwung.pitch *= f;
+    if (Math.abs(schwung.yaw) + Math.abs(schwung.pitch) < 0.00003) schwung = null; else weiter = true;
+  }
+  begrenze();
+  return weiter;
+}
+// Weiche Kamerafahrt zu einer neuen Stellung (auf dem kürzeren Drehweg).
+function fahre(nach, dauer) {
+  schwung = null; zoomZiel = 0;
+  nach.yaw = cam.yaw + wickel(nach.yaw - cam.yaw);
+  fahrt = { von: Object.assign({}, cam), nach: nach, dauer: ruhig ? 0 : dauer, t0: 0 };
+  fordere();
+}
+// Feste Gesamtansicht: von der Seite, etwas von oben – so wirkt es wie ein Baum. Im Hochformat (Handy) nutzt eine breite
+// Krone so die Höhe nicht: dort wird der Blick schrittweise steiler, bis der Baum die freie Höhe füllt (höchstens bis
+// PMAX, damit er als Baum erkennbar bleibt). Immer passen alle Personen und Stammfüße ins Bild.
+function ueberblick(w, h) {
+  const hoch = h > w * 1.2, blaetter = leute.length < 60 ? laub : null, PMAX = 0.8125;
+  const neu = p => ({ X: 0, Y: szene.H * 0.5, Z: 0, yaw: szene.yaw, pitch: p, dist: (szene.R + szene.H) * 2 });
+  let K = neu(hoch ? 0.42 : grenze(-0.1 + 0.62 * h / w, 0.3, 0.6));
+  if (!leute.length) { K.dist = brennweite(w, h) * 2; return K; }
+  K = rahme(K, leute, baeume, w, h, PR * 3.5, 0, null);
+  for (let p = 0.5; hoch && fuell3 < 0.94 && p < PMAX + 0.01; p += 0.0625) K = rahme(neu(p), leute, baeume, w, h, PR * 3.5, 0, null);
+  return blaetter ? rahme(K, leute, baeume, w, h, PR * 3.5, 0, blaetter) : K;
+}
+// Rückt und zoomt die Kamerastellung K so, dass die genannten Personen (und Stammfüße) ins Bild passen.
+// Drehung und Blickhöhe bleiben. rand = Luft um jede Person (Welt-Einheiten), unten = Platz für Namensschilder (px),
+// blaetter = Laubbüschel, die ebenfalls ins Bild sollen (kleine Bäume: Luft über der Krone).
+function rahme(K, personen, fuesse, w, h, rand, unten, blaetter) {
+  const fok = brennweite(w, h);
+  const ux0 = 18, ux1 = Math.max(w - 18, 60), uy0 = Math.min(16 + $('#legende').offsetHeight, h / 3), uy1 = Math.max(h - 64 - unten, uy0 + 60);
+  for (let r = 0; r < 30; r++) {
+    const cy = Math.cos(K.yaw), sy = Math.sin(K.yaw), cp = Math.cos(K.pitch), sp = Math.sin(K.pitch);
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    const nimm = (X, Y, Z, R) => {
+      X -= K.X; Y -= K.Y; Z -= K.Z;
+      const xa = X * cy + Z * sy, za = Z * cy - X * sy, s = fok / Math.max(za * cp - Y * sp + K.dist, 1);
+      const x = w / 2 + xa * s, y = blickY(h) - (Y * cp + za * sp) * s, rr = R * s;
+      x0 = Math.min(x0, x - rr); x1 = Math.max(x1, x + rr); y0 = Math.min(y0, y - rr * 1.4); y1 = Math.max(y1, y + rr);
+    };
+    personen.forEach(o => nimm(o.X, o.Y, o.Z, rand));
+    if (blaetter) for (let i = 0; i < blaetter.length; i += 5) nimm(blaetter[i], blaetter[i + 1], blaetter[i + 2], blaetter[i + 3] * 0.7);
+    fuesse.forEach(b => nimm(b.X, 0, b.Z, PR * 2));
+    const s = fok / K.dist;
+    // gedämpfte Schritte: was nahe an der Kamera liegt, wächst und wandert sprunghaft – sonst schaukelt sich die Suche auf
+    rueck(K, -0.6 * ((ux0 + ux1) / 2 - (x0 + x1) / 2) / s, 0.6 * ((uy0 + uy1) / 2 - (y0 + y1) / 2) / s);
+    fuell3 = (y1 - y0) / (uy1 - uy0);
+    K.dist = grenze(K.dist * grenze(Math.sqrt(Math.max((x1 - x0) / (ux1 - ux0), fuell3)), 0.55, 1.8), distMin(fok), distMax());
+  }
+  return K;
+}
+// Fährt zu einer Person. Die Kamera schaut dabei von außen und schräg von oben auf ihren Platz im Baum: so stehen die
+// Eltern (innen, tiefer) im Bild über ihr und die Kinder (außen) unter ihr, und nichts steht davor.
+// nah = false: so weit weg, dass Eltern, Partner und Kinder mit im Bild sind. nah = true: dicht an die Person.
+function fahreZuPerson(id, nah) {
+  const von = fahrt ? fahrt.nach : cam, K = sichtAuf(id, nah, von.yaw);
+  if (!K) return;
+  sicht3 = { id: id, nah: nah };
+  fahre(K, 650 + 350 * Math.abs(wickel(K.yaw - von.yaw)) / Math.PI);
+}
+// Kamerastellung für den Blick auf eine Person (yaw = bisherige Drehung; sie bleibt, wenn die Person in der Baummitte steht).
+function sichtAuf(id, nah, yaw) {
+  const o = p3.get(id), w = cv.clientWidth, h = cv.clientHeight;
+  if (!o || !w || !h) return null;
+  const fok = brennweite(w, h), rx = o.X - o.baum.X, rz = o.Z - o.baum.Z;
+  const K = { X: o.X, Y: o.Y, Z: o.Z, yaw: Math.hypot(rx, rz) > 100 ? Math.atan2(rx, -rz) : yaw, pitch: 1.1, dist: fok * PR / 42 };
+  if (!nah) {
+    if (rollenAlt || rollenId !== auswahl) rollen();
+    const kreis = id === auswahl ? leute.filter(q => q.rolle) : [o];
+    K.dist = fok * 12;
+    rahme(K, kreis, [], w, h, PR * 2.5, 40);
+    K.dist = Math.max(K.dist, fok * PR / 27);
+    if (K.dist > fok * PR / 11) { K.dist = fok * PR / 11; K.X = o.X; K.Y = o.Y; K.Z = o.Z; } // sehr weit verstreute Familie: Person in die Mitte
+  }
+  return K;
+}
+// Die Bildfläche hat eine neue Größe (Fenster, Panel auf/zu, Handy gedreht): Solange der Nutzer die Kamera seit der
+// letzten Fahrt nicht selbst bewegt hat, wird dieselbe Ansicht für die neue Größe neu berechnet.
+function passeAn3d() {
+  const r = fl.getBoundingClientRect();
+  sperr3 = []; legU = legR = 0;
+  for (const el of [$('#legende'), $('#hinweis3d'), $('.zoom')]) {
+    const q = el && el.style.opacity !== '0' ? el.getBoundingClientRect() : null;
+    if (!q || !q.width) continue;
+    let x1 = q.right;
+    if (el.id === 'legende') { // die Legende belegt nur, was ihre Einträge wirklich füllen
+      x1 = q.left;
+      for (const s of el.children) x1 = Math.max(x1, s.getBoundingClientRect().right);
+      legU = q.bottom - r.top; legR = x1 - r.left;
+    }
+    sperr3.push(q.left - r.left, q.top - r.top, x1 - r.left, q.bottom - r.top);
+  }
+  if (sicht3 && r.width && r.height) {
+    const K = sicht3.id === null ? ueberblick(r.width, r.height) : sichtAuf(sicht3.id, sicht3.nah, (fahrt ? fahrt.nach : cam).yaw);
+    if (K && fahrt) { K.yaw = fahrt.von.yaw + wickel(K.yaw - fahrt.von.yaw); fahrt.nach = K; }
+    else if (K) { K.yaw = cam.yaw + wickel(K.yaw - cam.yaw); Object.assign(cam, K); }
+  }
+  fordere();
+}
+function zoom3d(x, y, f, sofort) {
+  hinweis3d(false);
+  const w = cv.clientWidth, h = cv.clientHeight, fok = brennweite(w, h);
+  fahrt = null; schwung = null; sicht3 = null;
+  // Die Person unter dem Zeiger – sonst die vorderste im Umkreis von 70 Bildpunkten – wird zum Drehpunkt in der Tiefe:
+  // Der Zielpunkt rückt entlang der Blickrichtung auf ihren Abstand. Das Bild ändert sich dadurch nicht, aber der Zoom
+  // läuft genau auf sie zu, statt durch die vorderen Äste hindurch zur Baummitte zu fliegen.
+  let o = zoomZiel ? null : triff(x, y, 0);
+  if (!o && !zoomZiel) for (const q of treffer) if (Math.hypot(x - q.x, y - q.y) < 70 && (!o || q.d < o.d)) o = q;
+  if (o && o.d > distMin(fok)) {
+    const cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw), cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch), dd = o.d - cam.dist;
+    cam.X -= sy * cp * dd; cam.Y -= sp * dd; cam.Z += cy * cp * dd; cam.dist = o.d;
+  }
+  zoomX = x - w / 2; zoomY = y - blickY(h);
+  const ziel = grenze((zoomZiel || cam.dist) / f, distMin(fok), distMax());
+  if (sofort || ruhig) { zoomZiel = 0; zoomAuf(ziel); } else zoomZiel = ziel;
+  fordere();
+}
+// Bedienhinweis: erscheint beim Wechsel nach 3D und verschwindet nach 8 Sekunden oder bei der ersten Bedienung.
+function hinweis3d(an) {
+  const el = $('#hinweis3d');
+  clearTimeout(hinweisUhr);
+  if (!el || (!an && el.style.opacity === '0')) return;
+  el.style.opacity = an ? '' : '0';
+  if (an) hinweisUhr = setTimeout(hinweis3d, 8000, false);
+  else if (modus3d) { const s = sicht3; sicht3 = null; passeAn3d(); sicht3 = s; } // seine Fläche ist wieder frei für Schilder
+}
+function greife3d(e) {
+  hinweis3d(false);
+  fahrt = null; schwung = null; zoomZiel = 0; sicht3 = null;
+  schub3 = e.button === 2 || e.shiftKey; // rechte Maustaste oder Umschalt: verschieben statt drehen
+  drehZeit = performance.now(); drehVY = drehVP = 0;
+  cv.style.cursor = 'grabbing';
+}
+function schiebe3d(dx, dy) {
+  const s = brennweite(cv.clientWidth, cv.clientHeight) / cam.dist;
+  rueck(cam, -dx / s, dy / s);
+  begrenze();
+  fordere();
+}
+function ziehe3d(dx, dy) {
+  if (schub3) { schiebe3d(dx, dy); return; }
+  const jetzt = performance.now(), dtm = Math.max(4, jetzt - drehZeit), dyaw = -dx * 0.0065, dp = dy * 0.005;
+  cam.yaw += dyaw; cam.pitch += dp; // der Baum folgt dem Finger: nach rechts ziehen dreht die Vorderseite nach rechts
+  drehVY = 0.5 * drehVY + 0.5 * dyaw / dtm; drehVP = 0.5 * drehVP + 0.5 * dp / dtm;
+  drehZeit = jetzt;
+  begrenze();
+  fordere();
+}
+function lasse3d() {
+  cv.style.cursor = schweb ? 'pointer' : '';
+  // Trägheit: wer beim Loslassen noch in Bewegung war, dreht sanft aus
+  if (!schub3 && gezogen && !ruhig && performance.now() - drehZeit < 90 && Math.abs(drehVY) + Math.abs(drehVP) > 0.0002)
+    schwung = { yaw: grenze(drehVY, -0.006, 0.006), pitch: grenze(drehVP * 0.5, -0.002, 0.002) };
+  schub3 = false;
+  fordere();
+}
+// Welche Person liegt an dieser Stelle? Zuerst die vorderste Frucht (ein Klick auf eine Frucht trifft immer diese Frucht),
+// dann die Namensschilder, sonst – mit Fangradius, für Finger – die nächste kleine Frucht.
+function triff(x, y, fang) {
+  let best = null;
+  for (const o of treffer) if (Math.hypot(x - o.x, y - o.y) <= Math.max(o.r, 5)) best = o;
+  if (!best) for (const o of treffer) if (o.sa > 0.5 && x >= o.sx0 && x <= o.sx0 + o.sb && y >= o.sy0 && y <= o.sy0 + o.sh) best = o;
+  if (!best) for (const o of treffer) if (Math.hypot(x - o.x, y - o.y) <= Math.max(o.r, 5)) best = o;
+  if (!best) for (const o of treffer) {
+    const a = Math.hypot(x - o.x, y - o.y);
+    if (a <= fang) { best = o; fang = a; }
+  }
+  return best;
+}
+function schwebe3d(x, y) {
+  const o = triff(x, y, 0);
+  if (o === schweb) return;
+  schweb = o;
+  cv.style.cursor = o ? 'pointer' : '';
+  fordere();
+}
+
+// Zeichnet ein Bild. Rückgabe true = es blenden noch Beschriftungen ein oder aus (ein weiteres Bild ist nötig).
+function zeichne3d(dt) {
+  const w = cv.clientWidth, h = cv.clientHeight, dpr = Math.min(window.devicePixelRatio || 1, 3); // scharf auch auf hochauflösenden Bildschirmen
+  if (!w || !h) return false;
+  if (!bilder) bilder = male3d();
+  if (!waermeAn && waermeNr < 12 * 58 + 12 * 25) { waermeAn = true; setTimeout(waerme3d, 400); }
+  const B = bilder;
   if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
     cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
   }
+  if (rollenAlt || rollenId !== auswahl) rollen();
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const bg = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) * 0.7);
-  bg.addColorStop(0, '#1a2550'); bg.addColorStop(1, '#070a16');
-  ctx.globalAlpha = 1; ctx.shadowBlur = 0;
-  ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
-
-  const pr = new Map();
-  let dmin = Infinity, dmax = -Infinity;
-  p3.forEach((v, id) => { const q = proj(v, w, h); pr.set(id, q); dmin = Math.min(dmin, q.d); dmax = Math.max(dmax, q.d); });
-  const blass = d => 1 - 0.6 * (d - dmin) / ((dmax - dmin) || 1);
-  const linie = (a, b, farbe, dick, hoechstens) => {
-    if (a.d < 20 || b.d < 20) return;
-    if (Math.max(a.x, b.x) < 0 || Math.min(a.x, b.x) > w || Math.max(a.y, b.y) < 0 || Math.min(a.y, b.y) > h) return;
-    ctx.globalAlpha = grenze(blass((a.d + b.d) / 2), 0.25, 1) * 0.9;
-    ctx.strokeStyle = farbe;
-    ctx.lineWidth = grenze(dick * (a.s + b.s) / 2, 1, hoechstens || 1000);
-    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+  ctx.globalAlpha = 1; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  const cyw = Math.cos(cam.yaw), syw = Math.sin(cam.yaw), cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
+  const fok = brennweite(w, h), mx = w / 2, my = blickY(h), D = cam.dist, TX = cam.X, TY = cam.Y, TZ = cam.Z;
+  // Bewegt sich die Kamera nur ganz langsam (unter einem Bildpunkt je Bild) oder gar nicht, werden die Früchte genau an
+  // ihrem Ort und in ihrer genauen Größe gezeichnet: nichts flimmert oder springt. In schneller Bewegung sieht man das
+  // nicht; dann werden sie auf ganze Bildpunkte gesetzt und unverändert kopiert, was auch ohne Grafikkarte flüssig bleibt.
+  const fein = (Math.abs(cam.yaw - camAlt.yaw) + Math.abs(cam.pitch - camAlt.pitch) + Math.abs(Math.log(cam.dist / camAlt.dist))) * fok +
+    (Math.abs(cam.X - camAlt.X) + Math.abs(cam.Y - camAlt.Y) + Math.abs(cam.Z - camAlt.Z)) * fok / cam.dist < 0.7;
+  Object.assign(camAlt, cam);
+  let qx = 0, qy = 0, qs = 0, qd = 0;
+  const pj = (X, Y, Z) => { // Weltpunkt -> Bildpunkt (qx|qy), Maßstab qs, Abstand qd
+    X -= TX; Y -= TY; Z -= TZ;
+    const xa = X * cyw + Z * syw, za = Z * cyw - X * syw;
+    qd = za * cp - Y * sp + D; qs = fok / (qd > 1 ? qd : 1);
+    qx = mx + xa * qs; qy = my - (Y * cp + za * sp) * qs;
   };
-  ctx.lineCap = 'round';
-  // Äste nie breiter als ca. 14 px (auf kleinen Bildschirmen weniger), damit sie nahe Ansichten nicht zudecken.
-  const astMax = grenze(Math.min(w, h) / 45, 6, 14);
-  // Stämme unter den Wurzeln, dann die Äste (Eltern–Kind): holzfarben, zum Stamm hin dicker.
-  for (const s of staemme) linie(proj({ X: s.X, Y: s.Y + s.lang, Z: s.Z }, w, h), proj(s, w, h), '#8a5a2b', s.dick, astMax);
-  const zeichen = []; // Symbole und Datumstexte der Verbindungen: werden unten nach Tiefe zwischen die Kugeln einsortiert
-  for (const f of L.F) {
-    const va = p3.get(f.pa[0]), vb = p3.get(f.pa[1]) || va;
-    const m = proj({ X: (va.X + vb.X) / 2, Y: (va.Y + vb.Y) / 2, Z: (va.Z + vb.Z) / 2 }, w, h);
-    f.ki.forEach(id => linie(m, pr.get(id), '#a9743f', dicke3.get(id), astMax));
-    if (vb !== va) {
-      // wie in 2D: Ehe = Linie mit Ringen, Partnerschaft = gestrichelt ohne Ringe, beendet = Schrägstrich
-      if (f.e.art === 'partnerschaft') ctx.setLineDash([Math.max(3, 7 * m.s), Math.max(3, 6 * m.s)]);
-      linie(pr.get(f.pa[0]), pr.get(f.pa[1]), '#ffc857', 2.5);
-      ctx.setLineDash([]);
-      if (m.d > 20 && 5 * m.s >= 1.5 && m.x > -60 && m.x < w + 60 && m.y > -60 && m.y < h + 60) zeichen.push({ q: m, f: f });
+
+  // Himmel und Wiese bis zum Horizont. Die beiden Farbverläufe sind einmal je Bildgröße in ein eigenes Bild gemalt
+  // und werden nur noch passend zum Horizont hineinkopiert (viel schneller, als jedes Mal Verläufe zu füllen).
+  // Dieses Bild ist höchstens doppelt so fein wie die Seite (spart Speicher; den weichen Verläufen sieht man es nicht an).
+  // Sonne, Wolken und Hügelketten liegen rundum fest in der Landschaft: beim Drehen wandern sie mit.
+  const yH = my - fok * Math.tan(cam.pitch), ph = fok * 0.5;
+  {
+    const hf = Math.min(dpr, 2), bw = Math.round(w * hf), bh = Math.round(h * hf), pd = Math.round(ph * hf), gd = bh, yd = Math.round(yH * hf);
+    if (!hg || hg.width !== bw || hgPh !== pd || hgG !== gd) {
+      hg = hg || document.createElement('canvas');
+      hg.width = bw; hg.height = pd + gd; hgPh = pd; hgG = gd;
+      const g = hg.getContext('2d'), vh = g.createLinearGradient(0, 0, 0, pd), vw = g.createLinearGradient(0, pd, 0, pd + gd);
+      [[0, B.himmelOben], [0.4, '#7db7ea'], [0.72, '#b9dbf3'], [0.9, '#eef0e4'], [1, '#ffe9c2']].forEach(s => vh.addColorStop(s[0], s[1]));
+      [[0, '#c6de98'], [0.06, '#abd07e'], [0.3, '#87bc5f'], [1, '#5f9a44']].forEach(s => vw.addColorStop(s[0], s[1]));
+      g.fillStyle = vh; g.fillRect(0, 0, bw, pd);
+      g.fillStyle = vw; g.fillRect(0, pd, bw, gd);
+      // Grasstruktur: feine Halme, zum Horizont hin kleiner und blasser. Sie liegt fest im Bild, deshalb nur ganz zart.
+      let z = 9;
+      const zf = () => (z = z * 16807 % 2147483647) / 2147483647;
+      for (let i = Math.min(7000, bw * gd / 260); i > 0; i--) {
+        const t = zf(), l = (1.5 + t * 8) * hf;
+        g.fillStyle = i % 2 ? 'rgba(36,92,32,' + (0.05 + t * 0.12) + ')' : 'rgba(216,240,150,' + (0.04 + t * 0.1) + ')';
+        g.fillRect(zf() * bw, pd + gd * (0.015 + 0.985 * t), Math.max(1, hf * (0.6 + t)), -l);
+      }
+      // dezente Vignette: die Ränder links und rechts sind leicht abgedunkelt
+      const vr = g.createLinearGradient(0, 0, bw, 0);
+      [[0, 'rgba(16,36,52,.24)'], [0.17, 'rgba(16,36,52,0)'], [0.83, 'rgba(16,36,52,0)'], [1, 'rgba(16,36,52,.24)']].forEach(s => vr.addColorStop(s[0], s[1]));
+      g.fillStyle = vr; g.fillRect(0, 0, bw, pd + gd);
+    }
+    ctx.setTransform(dpr / hf, 0, 0, dpr / hf, 0, 0);
+    // Liegt der Horizont über dem Bildrand (Blick steil nach unten), bleibt das Wiesenbild stehen und geht weich in die
+    // einheitliche Wiesenfarbe über – so entsteht nie eine Kante, wo das vorgemalte Bild endet.
+    const yb = yd < 0 && yd > -gd ? 0 : yd;
+    const s0 = Math.max(0, pd - yb), s1 = Math.min(pd + gd, pd - yb + bh); // sichtbarer Ausschnitt des Hintergrundbilds
+    if (yb - pd > 0) { ctx.fillStyle = B.himmelOben; ctx.fillRect(0, 0, bw, yb - pd); }
+    if (s1 > s0) ctx.drawImage(hg, 0, s0, bw, s1 - s0, 0, s0 - pd + yb, bw, s1 - s0);
+    if (yb + gd < bh) { ctx.fillStyle = '#5f9a44'; ctx.fillRect(0, Math.max(0, yb + gd), bw, bh); }
+    if (yb !== yd) { ctx.globalAlpha = -yd / gd; ctx.fillStyle = '#5f9a44'; ctx.fillRect(0, 0, bw, bh); ctx.globalAlpha = 1; }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  if (yH > 0) {
+    const wy = cam.yaw + Math.PI;
+    let dx = wickel(4.6 - wy);
+    if (Math.abs(dx) < 1.5) ctx.drawImage(B.sonne, mx - fok * dx - ph * 0.45, yH - ph * 0.6, ph * 0.9, ph * 0.9);
+    for (const q of B.wolken) {
+      dx = wickel(q[0] - wy);
+      const g = q[2] * fok, x = mx - fok * dx, y = yH - q[1] * ph;
+      if (Math.abs(dx) < 1.4 && x + g > 0 && x - g < w && y + g > 0) ctx.drawImage(B.wolke[q[3]], x - g, y - g * 0.5, 2 * g, g);
+    }
+    // vier Hügelketten, nach vorn immer grüner und klarer (Luftperspektive); die dritte ist ein Waldrand mit feiner Zackung
+    for (let k = 0; k < 4; k++) {
+      const hub = fok * [0.036, 0.025, 0.017, 0.009][k], p = [0.4, 2.1, 3.3, 4.4][k], fz = k === 2 ? 0.05 : 0;
+      ctx.fillStyle = ['#a6c2dc', '#9dc2c0', '#7fae84', '#b2d68c'][k];
+      ctx.beginPath(); ctx.moveTo(0, yH + 1);
+      for (let x = 0; x <= w + 12; x += fz ? 5 : 12) {
+        const t = wy - (x - mx) / fok;
+        ctx.lineTo(x, yH - hub * (0.5 + 0.28 * Math.sin(3 * t + p) + 0.16 * Math.sin(7 * t + p * 2.3) + 0.08 * Math.sin(13 * t + p * 4.1) + fz * Math.sin(151 * t) * Math.sin(47 * t + 1)));
+      }
+      ctx.lineTo(w + 12, yH + 1); ctx.fill();
     }
   }
-  const zeichneZeichen = (m, f) => {
-    const rr = 5 * m.s, part = f.e.art === 'partnerschaft', text = eheText(f.e);
-    ctx.globalAlpha = 1;
-    ctx.strokeStyle = '#ffc857'; ctx.lineWidth = Math.max(1, 1.5 * m.s); ctx.fillStyle = '#131b3c';
-    if (!part) [-0.7, 0.7].forEach(dx => { ctx.beginPath(); ctx.arc(m.x + dx * rr, m.y, rr, 0, 6.2832); ctx.fill(); ctx.stroke(); });
-    if (f.e.endedatum) {
-      ctx.strokeStyle = '#ff8a65'; ctx.lineWidth = Math.max(1.5, 2.5 * m.s);
-      ctx.beginPath(); ctx.moveTo(m.x - rr * 1.2, m.y + rr * 1.8); ctx.lineTo(m.x + rr * 1.2, m.y - rr * 1.8); ctx.stroke();
+  for (const b of baeume) {
+    pj(b.X, 0, b.Z);
+    if (qd < NAH) continue;
+    const rx = b.R * qs, ry = Math.max(rx * sp, 1);
+    if (!(qx + rx > 0 && qx - rx < w && qy + ry > 0 && qy - ry < h)) continue;
+    // Der Schatten des Hauptbaums wird in seiner aktuellen Größe zwischengespeichert: beim Drehen ändert sie sich nicht,
+    // und unverändert kopieren geht viel schneller als jedes Mal neu strecken.
+    const sb = Math.round(rx * 2 * dpr), sh = Math.round(ry * 2 * dpr);
+    const ruhig2 = sb === schattenB && sh === schattenH; // gleiche Größe wie im Bild davor? (beim Zoomen lohnt das Speichern nicht)
+    if (b === baeume[0]) { schattenB = sb; schattenH = sh; }
+    if (b !== baeume[0] || !ruhig2 || sb * sh > 3e6 || sb < 2 || sh < 2) { ctx.drawImage(B.schatten, qx - rx, qy - ry, rx * 2, ry * 2); continue; }
+    if (!schattenG || schattenG.width !== sb || schattenG.height !== sh) {
+      schattenG = schattenG || document.createElement('canvas');
+      schattenG.width = sb; schattenG.height = sh;
+      schattenG.getContext('2d').drawImage(B.schatten, 0, 0, sb, sh);
     }
-    if (text && 11 * m.s >= 7.5) {
-      ctx.font = 11 * m.s + SCHRIFT; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-      ctx.fillStyle = '#ffd98a';
-      ctx.fillText(text, m.x, m.y - rr * 1.8 - 3);
-    }
-  };
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.drawImage(schattenG, Math.round((qx - rx) * dpr), Math.round((qy - ry) * dpr));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  for (let i = 0; i < wiese.length; i += 4) {
+    pj(wiese[i], 0, wiese[i + 1]);
+    const g = wiese[i + 2] * qs;
+    if (!(qd > NAH && g >= 1.6 && qx > -g && qx < w + g && qy > 0 && qy < h + g)) continue;
+    if (g < 6) { ctx.fillStyle = ['#ffffff', '#ffe14d', '#4f8f3a', '#f7b6cf'][wiese[i + 3]]; ctx.fillRect(qx - g * 0.2, qy - g * 0.7, g * 0.4, g * 0.4); } // weit weg: nur ein Farbtupfer
+    else ctx.drawImage(B.blumen[wiese[i + 3]], qx - g / 2, qy - g, g, g);
+  }
 
-  // Kugeln und Verbindungs-Zeichen gemeinsam von hinten nach vorn: Vorderes liegt vorn, Kugeln sind deckend.
-  treffer = [];
-  const liste = daten.personen.map(p => ({ p: p, q: pr.get(p.id) })).filter(o => o.q.d > 20).concat(zeichen).sort((a, b) => b.q.d - a.q.d);
-  for (const o of liste) {
-    if (o.f) { zeichneZeichen(o.q, o.f); continue; }
-    const p = o.p, q = o.q, T = t3.get(p.id), r = T.R * q.s, tot = istTot(p), stufe = textStufe(T, q.s);
-    const hell = tot ? '#e3e6ea' : '#b5e4ff', dunkel = tot ? '#8d949e' : '#3d93dc';
-    treffer.push({ id: p.id, x: q.x, y: q.y, r: r, d: q.d, st: stufe });
-    if (q.x + r * 1.2 < 0 || q.x - r * 1.2 > w || q.y + r * 1.2 < 0 || q.y - r * 1.2 > h) continue; // außerhalb des Bildes
-    // Leuchten als blasser Ring (günstiger als ein Weichzeichner-Schatten)
-    ctx.globalAlpha = 0.16; ctx.fillStyle = hell;
-    ctx.beginPath(); ctx.arc(q.x, q.y, r * 1.14, 0, 6.2832); ctx.fill();
-    ctx.globalAlpha = 1;
-    const g = ctx.createRadialGradient(q.x - r * 0.35, q.y - r * 0.4, r * 0.08, q.x, q.y, r);
-    g.addColorStop(0, '#ffffff'); g.addColorStop(0.35, hell); g.addColorStop(1, dunkel);
-    ctx.fillStyle = g;
-    ctx.beginPath(); ctx.arc(q.x, q.y, r, 0, 6.2832); ctx.fill();
-    ctx.globalAlpha = (1 - blass(q.d)) * 0.6; // weiter hinten = blasser (abgedunkelt statt durchsichtig)
-    ctx.fillStyle = '#0b1020';
-    ctx.beginPath(); ctx.arc(q.x, q.y, r, 0, 6.2832); ctx.fill();
-    ctx.globalAlpha = 1;
-    if (p.id === auswahl) {
-      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.arc(q.x, q.y, r + 5, 0, 6.2832); ctx.stroke();
+  // Personen in die Bildebene; daraus Nähe und Ferne für den Dunst
+  let dN = Infinity, dF = -Infinity;
+  for (const o of leute) {
+    pj(o.X, o.Y, o.Z);
+    // Früchte sind in der Ferne etwas größer als maßstäblich, damit man sie im ganzen Baum noch gut sieht
+    const r = Math.max(PR * qs * (1 + 0.8 * Math.max(0, 1 - qs * 2)), 3);
+    o.x = qx; o.y = qy; o.s = qs; o.d = qd; o.r = r;
+    o.sicht = qd > D * 0.3 && qd > NAH && qx > -2 * r && qx < w + 2 * r && qy > -2 * r - 40 && qy < h + 2.6 * r;
+    if (qd > NAH) { if (qd < dN) dN = qd; if (qd > dF) dF = qd; }
+  }
+  const dSp = Math.max(dF - dN, PR * 80), dimm = hatAuswahl; // bei sehr kleinen Bäumen bleibt alles klar
+  const dunst = d => { const v = (d - dN) / dSp * 3.5; return v < 0 ? 0 : v >= 3 ? 3 : v | 0; };
+
+  // Laub. Die hintere Schicht liegt als dichte Krone hinter Ästen und Früchten, die vordere über den Ästen – beide
+  // verdecken nie eine Person. Jedes Büschel wird in passender Größe unverkleinert und auf ganze Bildpunkte gesetzt
+  // kopiert (die Größen liegen in Stufen von 12 % bereit) – das ist auch ohne Grafikkarte schnell. Sehr nahe Büschel blenden aus.
+  const maleLaub = (L, deck) => {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    for (let i = 0; i < L.length; i += 5) {
+      pj(L[i], L[i + 1], L[i + 2]);
+      const g = L[i + 3] * qs;
+      if (!(qd > NAH && g > 1.2 && g < 300 && qx > -g && qx < w + g && qy > -g && qy < h + g)) continue;
+      const art = L[i + 4] * 3 + Math.min(2, dunst(qd)), k = Math.max(0, Math.round(Math.log(g * dpr / 4) * 8.82)); // 8.82 = 1 / ln(1,12)
+      ctx.globalAlpha = (g > 200 ? (300 - g) / 100 : 1) * deck;
+      const c = k > 31 ? B.laub[L[i + 4]][art % 3] : laubBild(art * 64 + k); // über ca. 270 Bildpunkte: selten, skaliert
+      if (k > 31) ctx.drawImage(c, (qx - g) * dpr, (qy - g) * dpr, 2 * g * dpr, 2 * g * dpr);
+      else ctx.drawImage(c, Math.round(qx * dpr - c.width / 2), Math.round(qy * dpr - c.width / 2));
     }
-    // Text in der Kugel: alles, wenn lesbar (ca. 9 px); sonst nur der Name (ab ca. 7 px); sonst nichts.
-    const zeilen = stufe === 2 ? T.voll : stufe === 1 ? T.name : null, f = stufe === 1 ? q.s * T.fName : q.s;
-    if (zeilen) {
-      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-      ctx.fillStyle = tot ? '#3a3f47' : '#04213d';
-      for (const l of zeilen) {
-        let x = q.x - l.b * f / 2;
-        for (const teil of l.teile) { ctx.font = schriftVon(teil, f); ctx.fillText(teil.t, x, q.y + l.y * f); x += teil.b * f; }
+    ctx.globalAlpha = 1;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  };
+  maleLaub(laub, 1);
+
+  // Äste und Bänder in die Bildebene
+  for (const a of aeste) {
+    const o = a.o, pts = a.pts;
+    let ok = true, x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+    for (let i = 0, j = 0; i < a.n; i++, j += 3) {
+      pj(pts[j], pts[j + 1], pts[j + 2]);
+      if (qd < NAH) { ok = false; break; }
+      pkx[o + i] = qx; pky[o + i] = qy; pks[o + i] = qs;
+      if (qx < x0) x0 = qx; if (qx > x1) x1 = qx; if (qy < y0) y0 = qy; if (qy > y1) y1 = qy;
+    }
+    const rm = a.rad[0] * pks[o] + 3;
+    a.sicht = ok && x1 > -rm && x0 < w + rm && y1 > -rm && y0 < h + rm;
+    if (!a.sicht) continue;
+    a.d = fok / pks[o + (a.n >> 1)];
+    a.st = dunst(a.d);
+  }
+  for (const b of baender) {
+    const o = b.o, pts = b.pts;
+    b.sicht = b.A.d > NAH && b.B.d > NAH && (b.A.sicht || b.B.sicht);
+    if (!b.sicht) continue;
+    for (let i = 0, j = 0; i < b.n; i++, j += 3) { pj(pts[j], pts[j + 1], pts[j + 2]); pkx[o + i] = qx; pky[o + i] = qy; pks[o + i] = qs; }
+    const m = b.n >> 1;
+    if (b.n === 2) { b.sx = (pkx[o] + pkx[o + 1]) / 2; b.sy = (pky[o] + pky[o + 1]) / 2; b.ss = (pks[o] + pks[o + 1]) / 2; }
+    else { b.sx = pkx[o + m]; b.sy = pky[o + m]; b.ss = pks[o + m]; }
+    b.d = Math.max(b.A.d, b.B.d) + 1.5;
+  }
+
+  // Holz zuerst, damit ein Ast nie eine Person verdeckt: erst Ranken und dünne Äste (weit weg) als einfache Linien,
+  // dann die dicken Äste als Bänder, von hinten nach vorn.
+  const linie = (o, n) => {
+    ctx.beginPath(); ctx.moveTo(pkx[o], pky[o]);
+    for (let i = 1; i < n; i++) ctx.lineTo(pkx[o + i], pky[o + i]);
+  };
+  holz3.length = 0;
+  ctx.lineCap = 'butt'; ctx.lineJoin = 'bevel';
+  for (const it of aeste) {
+    if (!it.sicht) continue;
+    const o = it.o, n = it.n, h0 = it.rad[0] * pks[o];
+    if (it.art === 3) {
+      // Ranke: dünne grüne Linie zu einem Kind, das in einem anderen Baum sitzt
+      ctx.globalAlpha = dimm && !it.hv ? 0.35 : 0.85;
+      ctx.strokeStyle = it.hv ? '#e0a318' : '#5f8f4a'; ctx.lineWidth = grenze(3 * pks[o], 1.2, 4);
+      linie(o, n); ctx.stroke();
+      ctx.globalAlpha = 1;
+    } else if (h0 < 1.6) {
+      // dünner Ast (weit weg): einfache Linie durch jeden zweiten Punkt
+      ctx.strokeStyle = it.hv ? '#d99a12' : B.holz[it.st + (dimm ? 2 : 0)]; ctx.lineWidth = it.hv ? 2.4 : h0 > 0.8 ? 2.2 : 1.2;
+      ctx.beginPath(); ctx.moveTo(pkx[o], pky[o]);
+      for (let i = 2; i < n - 1; i += 2) ctx.lineTo(pkx[o + i], pky[o + i]);
+      ctx.lineTo(pkx[o + n - 1], pky[o + n - 1]);
+      ctx.stroke();
+    } else holz3.push(it);
+  }
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  holz3.sort((a, b) => b.d - a.d);
+  // Umriss eines Astes: f = Anteil der Breite, v = Versatz quer zum Ast (in halben Breiten). e0, e1 = Form am Anfang
+  // und am Ende: 0 = rund, 1 = läuft auf den Umriss des Grundtons zusammen (dort geht der Ast in einen anderen über:
+  // so entsteht keine dunkle Kappe über dem Nachbarn), 2 = gerade abgeschnitten (Stammfuß am Boden).
+  let vg = 0;
+  const band = (o, n, f, v, e0, e1) => {
+    const m = n - 1, f0 = e0 === 1 ? 0.72 : f, v0 = e0 === 1 ? vg : v, f1 = e1 === 1 ? 0.72 : f, v1 = e1 === 1 ? vg : v;
+    ctx.beginPath(); ctx.moveTo(pkx[o] + nrx[0] * (v0 + f0), pky[o] + nry[0] * (v0 + f0));
+    for (let i = 1; i < m; i++) ctx.lineTo(pkx[o + i] + nrx[i] * (v + f), pky[o + i] + nry[i] * (v + f));
+    ctx.lineTo(pkx[o + m] + nrx[m] * (v1 + f1), pky[o + m] + nry[m] * (v1 + f1));
+    if (e1) ctx.lineTo(pkx[o + m] + nrx[m] * (v1 - f1), pky[o + m] + nry[m] * (v1 - f1));
+    else { const a = Math.atan2(nry[m], nrx[m]); ctx.arc(pkx[o + m] + nrx[m] * v, pky[o + m] + nry[m] * v, f * Math.hypot(nrx[m], nry[m]), a, a - Math.PI, true); }
+    for (let i = m - 1; i > 0; i--) ctx.lineTo(pkx[o + i] + nrx[i] * (v - f), pky[o + i] + nry[i] * (v - f));
+    if (e0) ctx.lineTo(pkx[o] + nrx[0] * (v0 - f0), pky[o] + nry[0] * (v0 - f0));
+    else { const a = Math.atan2(nry[0], nrx[0]); ctx.arc(pkx[o] + nrx[0] * v, pky[o] + nry[0] * v, f * Math.hypot(nrx[0], nry[0]), a + Math.PI, a, true); }
+    ctx.closePath();
+  };
+  for (const it of holz3) {
+    const o = it.o, n = it.n, stamm = it.art === 1 || it.art === 4, h0 = it.rad[0] * pks[o];
+    // Stamm und Wurzeln bleiben auch bei einer Auswahl holzfarben und deckend (sie verblassen nicht mit den übrigen Ästen)
+    const st = stamm ? (dimm ? Math.min(it.st, 1) : it.st) : it.st + (dimm && !it.hv ? 2 : 0);
+    // Band, das sich zur Spitze hin verjüngt
+    for (let i = 0; i < n; i++) {
+      const i0 = i ? i - 1 : 0, i1 = i < n - 1 ? i + 1 : i;
+      const tx2 = pkx[o + i1] - pkx[o + i0], ty2 = pky[o + i1] - pky[o + i0], l = Math.hypot(tx2, ty2) || 1, hw = Math.max(0.6, it.rad[i] * pks[o + i]);
+      nrx[i] = -ty2 / l * hw; nry[i] = tx2 / l * hw;
+    }
+    // Plastisch wie ein runder Ast: außen die Schattenfarbe, darüber zur Lichtseite (oben links) versetzt der Grundton
+    // und ein schmaler heller Streifen. Dünne Äste bekommen nur den Grundton. Die Enden sind rund; wo ein Ast aus einem
+    // anderen wächst oder sich gabelt, beginnt die Schattenfarbe erst hinter dem Übergang.
+    const rundung = h0 > 4.2, m = n >> 1, sg = nrx[m] * -0.5 + nry[m] * -0.85 < 0 ? -1 : 1, fuss = it.art === 1 ? 2 : 0;
+    vg = 0.17 * sg;
+    ctx.fillStyle = rundung ? B.holzDunkel[st] : B.holz[st];
+    if (rundung) band(o, n, 1, 0, fuss || (it.art === 2 ? 0 : 1), it.kis || it.art === 1 ? 1 : 0); else band(o, n, 1, 0, fuss, 0);
+    ctx.fill();
+    if (it.hv) { ctx.strokeStyle = '#f0b429'; ctx.lineWidth = 2; ctx.stroke(); }
+    if (!rundung) continue;
+    ctx.fillStyle = B.holz[st]; band(o, n, 0.72, vg, fuss, 0); ctx.fill();
+    if (h0 > 6) { ctx.fillStyle = B.holzHell[st]; band(o, n, 0.3, 0.48 * sg, fuss, 0); ctx.fill(); }
+    if (it.art === 1 && h0 > 7 && st < 3) {
+      // Rinde am Stamm: ein Muster aus Furchen, das mit dem Stamm mitläuft und mit ihm größer und kleiner wird
+      if (!rindeM) rindeM = ctx.createPattern(B.rinde, 'repeat');
+      if (rindeM.setTransform && window.DOMMatrix) {
+        const w0 = Math.atan2(pky[o + n - 1] - pky[o], pkx[o + n - 1] - pkx[o]) + 1.5708, kk = Math.max(0.25, pks[o] * 1.6), cw = Math.cos(w0) * kk, sw = Math.sin(w0) * kk;
+        rindeM.setTransform(new DOMMatrix([cw, sw, -sw, cw, pkx[o], pky[o]]));
       }
+      ctx.globalAlpha = Math.min(0.75, (h0 - 7) / 8);
+      ctx.fillStyle = rindeM; band(o, n, 1, 0, 2, 1); ctx.fill();
+      ctx.globalAlpha = 1;
     }
+  }
+  if (!dimm) maleLaub(laubV, 0.94); // bei einer Auswahl bleibt der Blick auf die hervorgehobenen Äste frei
+
+  // Bänder und Früchte gemeinsam von hinten nach vorn
+  reihen.sort((a, b) => b.d - a.d);
+  treffer = [];
+  let schrift = '';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (const it of reihen) {
+    if (!it.sicht) continue;
+    if (it.typ === 0) {
+      // Person: Frucht mit Initialen
+      // was der Kamera sehr nahe kommt, wird durchsichtig und verschwindet, statt das Bild zu verdecken
+      const r = it.r, st = dunst(it.d) + (dimm && !it.rolle ? 2 : 0), k = r / 44, nahe = Math.min(1, (it.d / D - 0.3) * 5);
+      it.nahe = nahe;
+      if (nahe > 0.5) treffer.push(it);
+      ctx.globalAlpha = nahe;
+      if (it.rolle === 2) ctx.drawImage(B.glut, it.x - r * 2.3, it.y - r * 2.3, r * 4.6, r * 4.6);
+      const S = Math.round(128 * k * dpr);
+      if (S <= 120) {
+        // kleine und mittlere Früchte: fertig verkleinertes Bild. In schneller Bewegung unverändert auf ganze Bildpunkte
+        // kopiert (schnell, auch ohne Grafikkarte), sonst genau an Ort und Größe.
+        const c = fruchtBild(((it.tot ? 6 : 0) + st) * 128 + S);
+        if (fein) ctx.drawImage(c, it.x - 64 * k, it.y - 72 * k, 128 * k, 128 * k);
+        else {
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.drawImage(c, Math.round((it.x - 64 * k) * dpr), Math.round((it.y - 72 * k) * dpr));
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+      } else ctx.drawImage(B.frucht[it.tot ? 1 : 0][st], it.x - 64 * k, it.y - 72 * k, 128 * k, 128 * k);
+      if (it.rolle || it === schweb) {
+        ctx.strokeStyle = it.rolle === 2 ? '#ffffff' : it.rolle ? '#ffcf4a' : '#2f4858';
+        ctx.lineWidth = it.rolle === 2 ? Math.max(2.5, r * 0.11) : 2;
+        ctx.beginPath(); ctx.arc(it.x, it.y, r + ctx.lineWidth * 0.8, 0, 6.2832); ctx.stroke();
+      }
+      if (r >= 9) {
+        if (dimm && !it.rolle) ctx.globalAlpha = 0.6 * nahe;
+        const sf = '700 ' + Math.round(r * (it.ini.length > 1 ? 0.78 : 0.95)) + SCHRIFT;
+        if (sf !== schrift) ctx.font = schrift = sf; // Schrift nur wechseln, wenn sich die Größe ändert
+        if (r >= 12) { ctx.fillStyle = it.tot ? 'rgba(255,255,255,.6)' : 'rgba(90,10,6,.55)'; ctx.fillText(it.ini, it.x, it.y + r * 0.06 + Math.max(1, r * 0.05)); } // feiner Schatten: besser lesbar
+        ctx.fillStyle = it.tot ? '#3f4651' : '#ffffff';
+        ctx.fillText(it.ini, it.x, it.y + r * 0.06);
+      }
+      ctx.globalAlpha = 1;
+    } else {
+      // Band zwischen Partnern: Ehe = durchgezogen mit Ringen, Partnerschaft = gestrichelt, beendet = roter Schrägstrich
+      const o = it.o, lw2 = grenze(4.5 * it.ss, 1.3, 7), rr = 8 * it.ss;
+      ctx.globalAlpha = dimm && !it.hv ? 0.4 : 1;
+      ctx.lineCap = 'butt';
+      if (it.part) ctx.setLineDash([lw2 * 2.4, lw2 * 1.8]);
+      linie(o, it.n);
+      if (lw2 > 2.4) { ctx.strokeStyle = '#a06f0a'; ctx.lineWidth = lw2 + 1.6; ctx.stroke(); }
+      ctx.strokeStyle = '#ffc93c'; ctx.lineWidth = lw2; ctx.stroke();
+      ctx.setLineDash([]); ctx.lineCap = 'round';
+      if (rr >= 2.5) {
+        if (!it.part) {
+          ctx.strokeStyle = '#a06f0a'; ctx.fillStyle = '#fff6d8'; ctx.lineWidth = Math.max(1, rr * 0.3);
+          for (const dx of [-0.6, 0.6]) { ctx.beginPath(); ctx.arc(it.sx + dx * rr, it.sy, rr * 0.8, 0, 6.2832); ctx.fill(); ctx.stroke(); }
+        }
+        if (it.aus) {
+          ctx.strokeStyle = '#d43c2a'; ctx.lineWidth = Math.max(1.6, rr * 0.4);
+          ctx.beginPath(); ctx.moveTo(it.sx - rr * 1.1, it.sy + rr * 1.7); ctx.lineTo(it.sx + rr * 1.1, it.sy - rr * 1.7); ctx.stroke();
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  // Beschriftungen in Detailstufen: nah = Name und Daten, mittel = nur der Name, fern = nur die Köpfe der Äste (Personen
+  // mit Nachkommen), ältere Generationen zuerst. Kein Schild überdeckt ein anderes, eine Frucht, die Legende oder die
+  // Knöpfe, und jedes bleibt ganz im Bild. Passt es nicht unter die Frucht, weicht es aus (rechts, links, darüber, eine
+  // Zeile tiefer oder höher); passt auch das nicht, schrumpft es auf den Namen oder entfällt. Nur das Schild der
+  // ausgewählten Person und der Person unter der Maus erscheint immer.
+  const kand = schilder, frei = belegt3;
+  kand.length = 0; frei.length = 0;
+  for (let i = 0; i < sperr3.length; i++) frei.push(sperr3[i]);
+  let verdeckt = false; // liegt eine größere Frucht unter der Legende?
+  for (const o of leute) {
+    o.zs = 0; o.ok = false;
+    if (!o.sicht) { o.sa = 0; continue; }
+    const fest = o.rolle > 0 || o === schweb;
+    // ist jemand ausgewählt, treten die Schilder der übrigen Personen zurück (nur aus der Nähe, nur der Name)
+    o.zs = fest || (!dimm && o.r >= 21) ? 2 : o.r >= (dimm ? 17 : 10) || (!dimm && o.kopf && (o.r >= 4.5 || o.g <= 1)) ? 1 : 0;
+    if (o.zs) { o.pri = fest ? 1e6 * (o.rolle + (o === schweb ? 1.5 : 0)) + o.r : o.r * (o.sa > 0.5 ? 5.2 : 4) - o.g * 25 + (o.kopf ? 40 : 0); kand.push(o); }
+    // jede Frucht ab 4 Bildpunkten Radius bleibt frei. Nur wenn der ganze Baum winzig ist (Handy, Gesamtansicht),
+    // dürfen die wenigen Namen der ältesten Generationen über den kleineren Pünktchen stehen.
+    if (o.r >= 4) frei.push(o.x - o.r * 0.9, o.y - o.r * 0.9, o.x + o.r * 0.9, o.y + o.r * 0.9);
+    if (o.r >= 8 && o.y - o.r < legU && o.x - o.r < legR) verdeckt = true;
+  }
+  if (verdeckt !== legBlass) { legBlass = verdeckt; $('#legende').style.opacity = verdeckt ? '0.3' : ''; }
+  kand.sort((a, b) => b.pri - a.pri);
+  const passtIn = (L, x0, y0, x1, y1) => {
+    for (let i = 0; i < L.length; i += 4) if (x0 < L[i + 2] + 3 && x1 > L[i] - 3 && y0 < L[i + 3] + 2 && y1 > L[i + 1] - 2) return false;
+    return true;
+  };
+  const passt = (x0, y0, x1, y1) => passtIn(frei, x0, y0, x1, y1);
+  // Sucht einen freien Platz für das Schild von o in Stufe st (2 = mit Daten). zwang: notfalls unter die Frucht.
+  const platz = (o, st, zwang) => {
+    const zwei = st === 2 && !!o.dat, bb = Math.min((st === 2 ? Math.max(o.lb, zwei ? o.db : 0) : o.nb) + 16, w - 8), bh = zwei ? 36 : 22;
+    const yu = o.y + o.r + 5, yo = o.y - o.r * 1.5 - 5 - bh, nah = nah3;
+    // Nur was im Umkreis aller zehn Plätze liegt, kann stören: diese wenigen Flächen einmal heraussuchen (spart viel Zeit)
+    const ux0 = grenze(o.x - o.r - 6 - bb, 4, w - 4 - bb) - 3, ux1 = grenze(o.x + o.r + 6, 4, w - 4 - bb) + bb + 3;
+    const uy0 = grenze(yo - bh - 3, 4, h - 4 - bh) - 2, uy1 = grenze(yu + bh + 3, 4, h - 4 - bh) + bh + 2;
+    nah.length = 0;
+    if (!zwang) for (let i = 0; i < frei.length; i += 4) if (frei[i] < ux1 && frei[i + 2] > ux0 && frei[i + 1] < uy1 && frei[i + 3] > uy0) nah.push(frei[i], frei[i + 1], frei[i + 2], frei[i + 3]);
+    // Plätze: unter der Frucht, rechts, links, darüber, eine Zeile tiefer, eine Zeile höher, dann die vier Ecken
+    for (let i = 0; i < (zwang ? 1 : 10); i++) {
+      const x0 = grenze(i === 1 || i === 6 || i === 8 ? o.x + o.r * (i === 1 ? 1 : 0.6) + 6 : i === 2 || i === 7 || i === 9 ? o.x - o.r * (i === 2 ? 1 : 0.6) - 6 - bb : o.x - bb / 2, 4, w - 4 - bb);
+      const y0 = grenze(i === 0 ? yu : i < 3 ? o.y - bh / 2 : i === 3 ? yo : i === 4 ? yu + bh + 3 : i === 5 ? yo - bh - 3 : i < 8 ? o.y + o.r * 0.6 + 3 : o.y - o.r * 0.6 - 3 - bh, 4, h - 4 - bh);
+      if (!zwang && !passtIn(nah, x0, y0, x0 + bb, y0 + bh)) continue;
+      frei.push(x0, y0, x0 + bb, y0 + bh);
+      o.ok = true; o.st = st; o.sx0 = x0; o.sy0 = y0; o.sb = bb; o.sh = bh; o.sdx = x0 - o.x; o.sdy = y0 - o.y;
+      return true;
+    }
+    return false;
+  };
+  let versuche = 0;
+  for (const o of kand) {
+    const zwang = o.rolle === 2 || o === schweb;
+    if (!zwang && ++versuche > 400) break; // sehr große Bäume: Aufwand begrenzen
+    if (!platz(o, o.zs, false) && !(o.zs === 2 && platz(o, 1, false)) && zwang) platz(o, o.zs, true);
+  }
+  let lebt = false;
+  const schritt = dt / 130;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const rund = (x, y, b, hh, r) => {
+    ctx.beginPath(); ctx.moveTo(x + r, y);
+    ctx.arcTo(x + b, y, x + b, y + hh, r); ctx.arcTo(x + b, y + hh, x, y + hh, r); ctx.arcTo(x, y + hh, x, y, r); ctx.arcTo(x, y, x + b, y, r);
+    ctx.closePath();
+  };
+  const schild = o => {
+    const gew = o.rolle === 2, voll = o.st === 2, mxs = o.sx0 + o.sb / 2;
+    // wird die Frucht nahe der Kamera durchsichtig, verblasst ihr Schild mit
+    ctx.globalAlpha = o.sa * o.nahe * (dimm && !o.rolle && o !== schweb ? 0.82 : 1);
+    const deck = ctx.globalAlpha;
+    ctx.globalAlpha = deck * 0.2; ctx.fillStyle = '#12281c';
+    rund(o.sx0 - 0.5, o.sy0 + 1.5, o.sb + 1, o.sh + 1, 10); ctx.fill(); // weicher Schatten unter dem Schild
+    ctx.globalAlpha = deck;
+    rund(o.sx0, o.sy0, o.sb, o.sh, 9);
+    ctx.fillStyle = gew ? '#2f4858' : o.tot ? 'rgba(236,237,233,.96)' : 'rgba(255,255,255,.96)'; ctx.fill();
+    ctx.strokeStyle = gew ? '#ffffff' : o.rolle ? '#e0a318' : o === schweb ? '#2f4858' : 'rgba(40,60,40,.28)';
+    ctx.lineWidth = o.rolle || o === schweb ? 1.6 : 1; ctx.stroke();
+    ctx.font = S_NAME; ctx.fillStyle = gew ? '#ffffff' : o.tot ? '#545b65' : '#1f2933';
+    ctx.fillText(voll ? o.lang : o.name, mxs, o.sy0 + 11.5);
+    if (o.sh > 30) { ctx.font = S_DATUM; ctx.fillStyle = gew ? '#d3e0e8' : '#5a6672'; ctx.fillText(o.dat, mxs, o.sy0 + 26.5); }
+  };
+  for (const o of leute) {
+    const ziel = o.ok ? 1 : 0;
+    if (o.sa !== ziel) { o.sa = ziel ? Math.min(1, o.sa + schritt) : Math.max(0, o.sa - schritt); if (o.sa !== ziel) lebt = true; }
+    if (!ziel && o.sa > 0) { o.sx0 = o.x + o.sdx; o.sy0 = o.y + o.sdy; schild(o); } // blendet an seinem letzten Platz aus
+  }
+  for (let i = kand.length - 1; i >= 0; i--) if (kand[i].ok) schild(kand[i]);
+  // Datum an den Verbindungen: nur aus der Nähe oder bei der ausgewählten Person
+  ctx.font = S_DATUM;
+  for (const b of baender) {
+    if (!b.sicht || !b.text || !(b.hv || b.ss >= 0.8)) continue;
+    const bb = b.tb + 12, x0 = b.sx - bb / 2, y0 = b.sy - 9 * b.ss - 22;
+    if (!passt(x0, y0, x0 + bb, y0 + 17)) continue;
+    frei.push(x0, y0, x0 + bb, y0 + 17);
+    ctx.globalAlpha = dimm && !b.hv ? 0.7 : 1;
+    rund(x0, y0, bb, 17, 8);
+    ctx.fillStyle = 'rgba(255,245,210,.94)'; ctx.fill();
+    ctx.fillStyle = '#7a4e16'; ctx.fillText(b.text, b.sx, y0 + 9);
   }
   ctx.globalAlpha = 1;
+  return lebt;
 }
 
 /* ---------- Gemeinsames Zeichnen / Ansicht ---------- */
@@ -874,7 +1851,7 @@ function zeigeStart() {
 function zeichne() {
   L = layout();
   zeigeStart();
-  if (modus3d) { baue3d(); zeichne3d(); } else zeichne2d();
+  if (modus3d) { baue3d(); fordere(); } else zeichne2d();
 }
 // Schiebt die Karten der genannten Personen in den sichtbaren Bereich (Panel verkleinert die Fläche).
 function zeige(ids) {
@@ -903,44 +1880,14 @@ function zeige(ids) {
 function einpassen(ganz) {
   const w = fl.clientWidth, h = fl.clientHeight;
   if (modus3d) {
-    zielId = null;
-    // Gesamtansicht für eine Blickrichtung: von der Seite, leicht von oben; Abstand schrittweise so wählen,
-    // dass alle Kugeln samt ihrem Radius und der Stamm ins Bild passen.
-    const randY = 14 + $('#legende').offsetHeight; // oben Platz für die Legende lassen
-    const gesamt = (yaw, neigung) => {
-      cam.yaw = yaw; cam.pitch = neigung; cam.dist = 12000;
-      for (let r = 0; r < 12; r++) {
-        let k = 0;
-        const pruefe = (v, R) => {
-          const q = proj(v, w, h), kr = R * q.s;
-          k = Math.max(k, (Math.abs(q.x - w / 2) + kr) / Math.max(w / 2 - 8, 20), (Math.abs(q.y - h / 2) + kr) / Math.max(h / 2 - randY, 20));
-        };
-        p3.forEach((v, id) => pruefe(v, t3.get(id).R));
-        staemme.forEach(s => pruefe({ X: s.X, Y: s.Y + s.lang, Z: s.Z }, s.dick));
-        cam.dist = grenze(cam.dist * k, FOK * 0.7, DISTMAX);
-      }
-      return lesbar3d(w, h);
-    };
-    // Blickrichtung und Neigung nehmen, bei denen am meisten lesbar ist (bei sehr großen Bäumen nur die Standardrichtung).
-    // Die flachere Neigung hilft auf niedrigen Bildschirmen (Handy quer).
-    const richtungen = p3.size <= 150 ? 24 : p3.size <= 600 ? 12 : 1;
-    let yaw = startYaw, neigung = 0.33, bester = -Infinity;
-    for (const ng of richtungen > 1 ? [0.33, 0.16] : [0.33]) {
-      for (let i = 0; i < richtungen; i++) {
-        const y = startYaw + i * 2 * Math.PI / richtungen, n = gesamt(y, ng).wert;
-        if (n > bester + 0.01) { bester = n; yaw = y; neigung = ng; }
-      }
+    // Feste Startperspektive (keine Suche nach der besten Blickrichtung mehr). ganz = true: der ganze Baum.
+    // Sonst: zur ausgewählten Person, wenn es eine gibt. Die Kamera fährt weich dorthin.
+    const z = ueberblick(w || 800, h || 600);
+    if (kamNeu) { // erster Blick nach dem Umschalten: von etwas weiter weg und höher hereinfahren
+      kamNeu = false; fahrt = null; schwung = null; zoomZiel = 0;
+      Object.assign(cam, z, { yaw: z.yaw - 0.55, pitch: z.pitch + 0.22, dist: z.dist * 1.35 });
     }
-    const lesbar = gesamt(yaw, neigung).namen;
-    // Startansicht (nicht der Button "Einpassen"): Sind in der Gesamtansicht weniger als die Hälfte der Namen lesbar,
-    // halbnah an Auswahl bzw. Grundperson gehen – aber nur, wenn dort genug Namen ins Bild kommen (großer Bildschirm).
-    const zid = p3.has(auswahl) ? auswahl : (daten.personen[0] || {}).id;
-    if (!ganz && lesbar < p3.size / 2 && p3.has(zid)) {
-      const abstand = cam.dist;
-      zielId = zid; cam.dist = FOK / 0.45; cam.pitch = 0.55; cam.yaw = p3.get(zid).t + 0.25;
-      if (lesbar3d(w, h).namen < 8) { zielId = null; cam.dist = abstand; cam.pitch = neigung; cam.yaw = yaw; }
-    }
-    zeichne3d();
+    if (!ganz && p3.has(auswahl)) fahreZuPerson(auswahl, false); else { sicht3 = { id: null }; fahre(z, 900); }
     return;
   }
   const bw = L.breite + KW, bh = L.maxG * ZH + KH;
@@ -956,23 +1903,25 @@ function einpassen(ganz) {
   anwenden();
 }
 function zoomKnopf(f) {
-  if (modus3d) { cam.dist = grenze(cam.dist / f, FOK * 0.2, DISTMAX); zeichne3d(); }
+  if (modus3d) zoom3d(cv.clientWidth / 2, cv.clientHeight / 2, f);
   else zoomAn(fl.clientWidth / 2, fl.clientHeight / 2, f);
 }
 function setzeModus(d3) {
   modus3d = d3;
+  kamNeu = d3; schweb = null; sicht3 = null; cv.style.cursor = '';
   buehne.classList.toggle('d3', d3);
   $('#b2d').setAttribute('aria-pressed', String(!d3));
   $('#b3d').setAttribute('aria-pressed', String(d3));
   zeichne();
   einpassen();
+  if (d3) { hinweis3d(true); passeAn3d(); } // Bedienhinweis zeigen, Flächen von Legende und Knöpfen merken
 }
 function waehle(id) {
   auswahl = id;
   ansicht = 'person';
-  if (modus3d && zielId && id) zielId = id; // Nahansicht in 3D folgt der Auswahl
   zeigePanel();
   zeichne();
+  if (modus3d) { if (id) fahreZuPerson(id, false); else sicht3 = null; } // 3D: weiche Fahrt zur ausgewählten Person
   if (id) zeige([id]);
 }
 
@@ -982,6 +1931,7 @@ let gezogen = false, startP = null;
 fl.addEventListener('pointerdown', e => {
   zeiger.set(e.pointerId, { x: e.clientX, y: e.clientY });
   if (zeiger.size === 1) { gezogen = false; startP = { x: e.clientX, y: e.clientY }; }
+  if (modus3d) greife3d(e);
 });
 window.addEventListener('pointermove', e => {
   const z = zeiger.get(e.pointerId);
@@ -990,11 +1940,8 @@ window.addEventListener('pointermove', e => {
     if (!gezogen && Math.hypot(e.clientX - startP.x, e.clientY - startP.y) < 6) return;
     gezogen = true;
     const dx = e.clientX - z.x, dy = e.clientY - z.y;
-    if (modus3d) {
-      cam.yaw += dx * 0.008;
-      cam.pitch = grenze(cam.pitch + dy * 0.006, -0.3, 1.2); // nur in Grenzen kippen: der Baum bleibt aufrecht
-      zeichne3d();
-    } else { tx += dx; ty += dy; anwenden(); }
+    if (modus3d) ziehe3d(dx, dy);
+    else { tx += dx; ty += dy; anwenden(); }
     z.x = e.clientX; z.y = e.clientY;
   } else if (zeiger.size === 2) {
     gezogen = true;
@@ -1005,7 +1952,7 @@ window.addEventListener('pointermove', e => {
     const vor = mess();
     z.x = e.clientX; z.y = e.clientY;
     const nach = mess(), f = nach.d / vor.d;
-    if (modus3d) { cam.dist = grenze(cam.dist / f, FOK * 0.2, DISTMAX); zeichne3d(); }
+    if (modus3d) { const r = fl.getBoundingClientRect(); schiebe3d(nach.x - vor.x, nach.y - vor.y); zoom3d(nach.x - r.left, nach.y - r.top, f, true); }
     else {
       const r = fl.getBoundingClientRect();
       tx += nach.x - vor.x; ty += nach.y - vor.y;
@@ -1016,36 +1963,45 @@ window.addEventListener('pointermove', e => {
 function zeigerEnde(e) {
   if (!zeiger.has(e.pointerId)) return;
   zeiger.delete(e.pointerId);
-  if (!zeiger.size) setTimeout(() => { gezogen = false; }, 0);
+  if (!zeiger.size) { if (modus3d) lasse3d(); setTimeout(() => { gezogen = false; }, 0); }
 }
-// 3D: Kugel erst beim "click" wählen (wie die 2D-Karten). So gibt es keinen Folge-Klick,
-// der auf Touch-Geräten im gerade geöffneten Panel landet.
+// 3D: Person erst beim "click" wählen (wie die 2D-Karten). So gibt es keinen Folge-Klick,
+// der auf Touch-Geräten im gerade geöffneten Panel landet. Zweiter Klick/Tipp kurz danach an derselben Stelle: nah
+// an die Person heran. Weil sich das Bild nach dem ersten Klick schon bewegt (Panel, Kamerafahrt), zählt für den
+// zweiten Klick das Bild vom ersten: Lag dort eine andere, benachbarte Person, wird sie gewählt statt nah heranzufahren.
 cv.addEventListener('click', e => {
   if (gezogen || !modus3d) return;
-  const r = fl.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
-  // Liegt der Punkt in einer oder mehreren Kugeln, gewinnt die vorderste: "treffer" ist von hinten
-  // nach vorn sortiert, also die letzte passende. Sonst die nächste kleine Kugel im Fangradius (Finger).
-  let best = null, bestA = 22;
-  for (const t of treffer) if (Math.hypot(x - t.x, y - t.y) <= t.r) best = t;
-  if (!best) for (const t of treffer) {
-    const a = Math.hypot(x - t.x, y - t.y);
-    if (a <= bestA) { best = t; bestA = a; }
-  }
-  if (best) waehle(best.id);
+  const r = fl.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, jetzt = performance.now();
+  let o = null;
+  if (klickId && jetzt - klickZeit < 450 && Math.hypot(x - klickX, y - klickY) < 30) {
+    for (const q of klickBild) if (Math.hypot(x - q.x, y - q.y) <= Math.max(q.r, 5)) o = q.o;
+    if (!o || o.id === klickId) { klickZeit = 0; fahreZuPerson(klickId, true); return; }
+  } else o = triff(x, y, 22);
+  klickBild = treffer.filter(q => Math.hypot(x - q.x, y - q.y) < 60 + q.r).map(q => ({ o: q, x: q.x, y: q.y, r: q.r }));
+  klickId = o ? o.id : null; klickZeit = jetzt; klickX = x; klickY = y;
+  if (o) waehle(o.id);
 });
+// 3D mit der Maus: Person unter dem Zeiger hervorheben; das Kontextmenü weicht dem Verschieben mit der rechten Taste.
+fl.addEventListener('pointermove', e => {
+  if (!modus3d || zeiger.size || e.pointerType !== 'mouse') return;
+  const r = fl.getBoundingClientRect();
+  schwebe3d(e.clientX - r.left, e.clientY - r.top);
+});
+fl.addEventListener('pointerleave', () => { if (modus3d && !zeiger.size) schwebe3d(-1e5, -1e5); });
+fl.addEventListener('contextmenu', e => { if (modus3d) e.preventDefault(); });
 window.addEventListener('pointerup', zeigerEnde);
 window.addEventListener('pointercancel', zeigerEnde);
 fl.addEventListener('wheel', e => {
   e.preventDefault();
   const f = Math.exp(-e.deltaY * (e.deltaMode ? 0.05 : 0.0015));
-  if (modus3d) { cam.dist = grenze(cam.dist / f, FOK * 0.2, DISTMAX); zeichne3d(); }
+  if (modus3d) { const r = fl.getBoundingClientRect(); zoom3d(e.clientX - r.left, e.clientY - r.top, f); }
   else { const r = fl.getBoundingClientRect(); zoomAn(e.clientX - r.left, e.clientY - r.top, f); }
 }, { passive: false });
 welt.addEventListener('click', e => {
   const k = e.target.closest('.karte');
   if (k && !gezogen) waehle(k.dataset.id);
 });
-if (window.ResizeObserver) new ResizeObserver(() => { if (modus3d) zeichne3d(); }).observe(fl);
+if (window.ResizeObserver) new ResizeObserver(() => { if (modus3d) passeAn3d(); }).observe(fl);
 
 /* ---------- Panel ---------- */
 function pLink(p) {
